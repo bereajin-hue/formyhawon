@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import XPBar from '@/components/gamification/XPBar'
 import StreakBadge from '@/components/gamification/StreakBadge'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 import type { Profile } from '@/types'
 
 interface SidebarNavProps {
@@ -12,16 +14,17 @@ interface SidebarNavProps {
 
 export default function SidebarNav({ profile }: SidebarNavProps) {
   const pathname = usePathname()
+  const { t, lang, setLang } = useT()
   const isParent = profile.role === 'parent'
 
   const navItems = isParent
-    ? [{ href: '/parent', icon: '👨‍👩‍👧', label: '자녀 대시보드' }]
+    ? [{ href: '/parent', icon: '👨‍👩‍👧', label: t(T.nav.childDashboard) }]
     : [
-        { href: '/dashboard', icon: '🏠', label: '홈' },
-        { href: '/library', icon: '📚', label: '책 라이브러리' },
-        { href: '/writing', icon: '✍️', label: '에세이' },
-        { href: '/vocab', icon: '🔤', label: '어휘 학습' },
-        { href: '/certificate', icon: '🎓', label: '수료증' },
+        { href: '/dashboard', icon: '🏠', label: t(T.nav.home) },
+        { href: '/library', icon: '📚', label: t(T.nav.library) },
+        { href: '/writing', icon: '✍️', label: t(T.nav.essay) },
+        { href: '/vocab', icon: '🔤', label: t(T.nav.vocab) },
+        { href: '/certificate', icon: '🎓', label: t(T.nav.certificate) },
       ]
 
   return (
@@ -49,7 +52,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
             <div>
               <p className="font-semibold text-gray-800 text-sm leading-tight">{profile.name}</p>
               <p className="text-xs text-indigo-500">
-                {isParent ? '부모 계정' : `${profile.grade}학년`}
+                {isParent ? t(T.nav.parentAccount) : T.common.grade(profile.grade ?? 0, lang)}
               </p>
             </div>
           </div>
@@ -86,15 +89,37 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
         })}
       </nav>
 
+      {/* 언어 토글 */}
+      <div className="px-3 py-2 border-t border-gray-100">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+          <button
+            onClick={() => setLang('ko')}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              lang === 'ko' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            🇰🇷 한국어
+          </button>
+          <button
+            onClick={() => setLang('en')}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              lang === 'en' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            🇺🇸 English
+          </button>
+        </div>
+      </div>
+
       {/* 로그아웃 */}
-      <div className="px-3 py-4 border-t border-gray-100">
+      <div className="px-3 py-3 border-t border-gray-100">
         <form action="/api/auth/logout" method="POST">
           <button
             type="submit"
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all text-sm"
           >
             <span>🚪</span>
-            로그아웃
+            {t(T.common.logout)}
           </button>
         </form>
       </div>

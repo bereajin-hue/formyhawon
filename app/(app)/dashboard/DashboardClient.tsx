@@ -5,12 +5,14 @@ import Link from 'next/link'
 import MissionCard from '@/components/gamification/MissionCard'
 import Calendar30 from '@/components/gamification/Calendar30'
 import XPBar from '@/components/gamification/XPBar'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 import type { Profile, DailyMission, Mission, Milestone } from '@/types'
 
 const MILESTONE_META = [
-  { day: 10, xp: 500, label: '소보상', emoji: '🎀' },
-  { day: 20, xp: 900, label: '중간보상', emoji: '🏆' },
-  { day: 30, xp: 1500, label: '대보상', emoji: '🎁' },
+  { day: 10, xp: 500, labelKey: 'soboReward' as const, emoji: '🎀' },
+  { day: 20, xp: 900, labelKey: 'midReward' as const, emoji: '🏆' },
+  { day: 30, xp: 1500, labelKey: 'bigReward' as const, emoji: '🎁' },
 ]
 
 interface Props {
@@ -29,6 +31,7 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
   const [checkedIn, setCheckedIn] = useState(false)
   const [xpPopup, setXpPopup] = useState<number | null>(null)
   const [milestonePopup, setMilestonePopup] = useState<number | null>(null)
+  const { t, lang } = useT()
 
   useEffect(() => {
     if (!dailyMission) {
@@ -90,7 +93,7 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
   }
 
   const today = new Date()
-  const dateStr = today.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })
+  const dateStr = today.toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { month: 'long', day: 'numeric', weekday: 'long' })
   const completedCount = missions.filter((m) => m.completed).length
   const allDone = completedCount === missions.length && missions.length > 0
 
@@ -103,28 +106,28 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
       )}
       {milestonePopup !== null && (
         <div className="fixed top-24 right-8 z-50 bg-yellow-400 text-yellow-900 px-5 py-3 rounded-2xl shadow-lg font-bold text-base">
-          🏆 마일스톤 달성! 부모님 승인을 기다려요
+          {t(T.dashboard.milestoneAchieved)}
         </div>
       )}
 
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">안녕하세요, {profile.name}님! 👋</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{T.dashboard.greeting(profile.name, lang)}</h1>
           <p className="text-gray-500 mt-1 text-sm">
-            {dateStr} · <span className="font-semibold text-indigo-600">Day {currentDay} / 30</span>
+            {dateStr} · <span className="font-semibold text-indigo-600">{T.dashboard.dayProgress(currentDay, lang)}</span>
           </p>
         </div>
         {checkedIn && (
           <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-xs text-green-600 font-medium">
-            ✅ 오늘 체크인 +5 XP
+            {t(T.dashboard.checkinBadge)}
           </div>
         )}
       </div>
 
       {allDone && (
         <div className="mb-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl p-5 text-white shadow-md">
-          <p className="font-bold text-lg">🎉 오늘 미션 모두 완료!</p>
-          <p className="text-sm opacity-90 mt-1">훌륭해요! 내일도 이 기세로 달려봐요.</p>
+          <p className="font-bold text-lg">{t(T.dashboard.allDone)}</p>
+          <p className="text-sm opacity-90 mt-1">{t(T.dashboard.allDoneDesc)}</p>
         </div>
       )}
 
@@ -133,8 +136,8 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
           <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-5 text-white shadow-md hover:shadow-lg transition-all hover:scale-[1.01]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-bold text-lg">🎓 수료증 보기</p>
-                <p className="text-sm opacity-90 mt-1">지금까지의 학습 성과를 확인하고 인쇄해보세요!</p>
+                <p className="font-bold text-lg">{t(T.dashboard.certBanner)}</p>
+                <p className="text-sm opacity-90 mt-1">{t(T.dashboard.certBannerDesc)}</p>
               </div>
               <span className="text-3xl">→</span>
             </div>
@@ -144,9 +147,9 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-gray-800">오늘의 미션</h2>
+          <h2 className="font-bold text-gray-800">{t(T.dashboard.todayMissions)}</h2>
           <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
-            {completedCount} / {missions.length} 완료
+            {T.dashboard.missionCount(completedCount, missions.length, lang)}
           </span>
         </div>
         {missions.length > 0 ? (
@@ -158,14 +161,14 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
         ) : (
           <div className="text-center py-8 text-gray-400">
             <div className="animate-spin text-2xl mb-2">⏳</div>
-            <p className="text-sm">미션 불러오는 중...</p>
+            <p className="text-sm">{t(T.dashboard.loadingMissions)}</p>
           </div>
         )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-gray-800">XP 현황</h2>
+          <h2 className="font-bold text-gray-800">{t(T.dashboard.xpStatus)}</h2>
           <span className="text-2xl font-bold text-indigo-600">{xp.toLocaleString()} XP</span>
         </div>
         <XPBar current={xp} />
@@ -182,12 +185,12 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
                 <p className="text-lg mb-0.5">{m.emoji}</p>
                 <p className="text-xs text-gray-500">Day {m.day}</p>
                 <p className="font-bold text-sm text-gray-700">{m.xp} XP</p>
-                <p className="text-xs text-gray-400">{m.label}</p>
+                <p className="text-xs text-gray-400">{t(T.dashboard[m.labelKey])}</p>
                 {status === 'approved' && (
-                  <p className="text-xs text-green-600 mt-1 font-medium">달성! ✓ 승인됨</p>
+                  <p className="text-xs text-green-600 mt-1 font-medium">{t(T.dashboard.approved)}</p>
                 )}
                 {status === 'pending' && (
-                  <p className="text-xs text-yellow-600 mt-1 font-medium">달성! 승인 대기 중</p>
+                  <p className="text-xs text-yellow-600 mt-1 font-medium">{t(T.dashboard.pendingApproval)}</p>
                 )}
               </div>
             )

@@ -1,5 +1,8 @@
 'use client'
 
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
+
 interface XPBarProps {
   current: number
   label?: boolean
@@ -16,8 +19,8 @@ export function getNextMilestone(xp: number) {
 }
 
 export default function XPBar({ current, label = true }: XPBarProps) {
+  const { lang } = useT()
   const next = getNextMilestone(current)
-  const prev = MILESTONES.find((m) => m.xp === next.xp)
   const base = MILESTONES[MILESTONES.indexOf(next) - 1]?.xp ?? 0
   const pct = Math.min(100, Math.round(((current - base) / (next.xp - base)) * 100))
 
@@ -25,7 +28,7 @@ export default function XPBar({ current, label = true }: XPBarProps) {
     <div className="w-full">
       {label && (
         <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-          <span>Day {next.day} 마일스톤</span>
+          <span>{T.xpbar.milestone(next.day, lang)}</span>
           <span className="font-medium text-indigo-600">{current} / {next.xp} XP</span>
         </div>
       )}
@@ -36,7 +39,7 @@ export default function XPBar({ current, label = true }: XPBarProps) {
         />
       </div>
       {label && (
-        <p className="text-xs text-gray-400 mt-1">{Math.max(0, next.xp - current)} XP 더 모으면 보상!</p>
+        <p className="text-xs text-gray-400 mt-1">{T.xpbar.moreXp(Math.max(0, next.xp - current), lang)}</p>
       )}
     </div>
   )

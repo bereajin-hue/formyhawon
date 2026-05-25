@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 import type { Book, Profile, BookQuestContent } from '@/types'
 
 interface Props {
@@ -10,32 +12,33 @@ interface Props {
   initialContent: BookQuestContent | null
 }
 
-const TABS = [
-  { id: 'background', label: '📜 배경지식' },
-  { id: 'themes', label: '🎭 핵심 테마' },
-  { id: 'essays', label: '✍️ 에세이 질문' },
-  { id: 'chapters', label: '📖 챕터 질문' },
-  { id: 'vocab', label: '🔤 핵심 어휘' },
-]
-
-const DIFFICULTY_STYLE: Record<string, string> = {
-  easy: 'bg-green-100 text-green-600',
-  medium: 'bg-yellow-100 text-yellow-700',
-  hard: 'bg-red-100 text-red-600',
-}
-
-const DIFFICULTY_LABEL: Record<string, string> = {
-  easy: '쉬움',
-  medium: '중간',
-  hard: '어려움',
-}
-
 export default function BookDetailClient({ book, profile, initialContent }: Props) {
   const router = useRouter()
+  const { t, lang } = useT()
   const [activeTab, setActiveTab] = useState('background')
   const [content, setContent] = useState<BookQuestContent | null>(initialContent)
   const [loading, setLoading] = useState(!initialContent)
   const [error, setError] = useState('')
+
+  const TABS = [
+    { id: 'background', label: t(T.bookDetail.background) },
+    { id: 'themes', label: t(T.bookDetail.themes) },
+    { id: 'essays', label: t(T.bookDetail.essayQuestions) },
+    { id: 'chapters', label: t(T.bookDetail.chapterQuestions) },
+    { id: 'vocab', label: t(T.bookDetail.vocab) },
+  ]
+
+  const DIFFICULTY_LABEL: Record<string, string> = {
+    easy: t(T.bookDetail.easy),
+    medium: t(T.bookDetail.medium),
+    hard: t(T.bookDetail.hard),
+  }
+
+  const DIFFICULTY_STYLE: Record<string, string> = {
+    easy: 'bg-green-100 text-green-600',
+    medium: 'bg-yellow-100 text-yellow-700',
+    hard: 'bg-red-100 text-red-600',
+  }
 
   useEffect(() => {
     if (!initialContent) generateContent()
@@ -59,7 +62,7 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
       if (data.error) throw new Error(data.error)
       setContent(data.content)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'AI 생성 오류')
+      setError(err instanceof Error ? err.message : t(T.bookDetail.aiError))
     }
     setLoading(false)
   }
@@ -71,18 +74,16 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
 
   return (
     <div className="max-w-4xl">
-      {/* 헤더 */}
       <div className="flex items-start gap-4 mb-6">
         <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600 mt-1">
-          ← 뒤로
+          {t(T.common.back)}
         </button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">{book.title}</h1>
-          <p className="text-gray-500 mt-0.5">{book.author} · {book.grade_level ?? profile.grade}학년</p>
+          <p className="text-gray-500 mt-0.5">{book.author} · {T.bookDetail.gradeLabel(book.grade_level ?? profile.grade ?? 10, lang)}</p>
         </div>
       </div>
 
-      {/* 로딩 */}
       {loading && (
         <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-10 text-center">
           <div className="flex justify-center mb-4">
@@ -91,25 +92,22 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
           </div>
-          <p className="font-semibold text-indigo-700 text-lg">Claude가 학습 자료를 만들고 있어요</p>
-          <p className="text-indigo-400 text-sm mt-1">배경지식, 테마, 에세이 질문, 어휘를 생성 중... (30초 소요)</p>
+          <p className="font-semibold text-indigo-700 text-lg">{t(T.bookDetail.generating)}</p>
+          <p className="text-indigo-400 text-sm mt-1">{t(T.bookDetail.generatingDesc)}</p>
         </div>
       )}
 
-      {/* 오류 */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
           <p className="text-red-600 font-medium">{error}</p>
           <button onClick={generateContent} className="mt-3 bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
-            다시 시도
+            {t(T.common.retry)}
           </button>
         </div>
       )}
 
-      {/* 탭 콘텐츠 */}
       {content && !loading && (
         <>
-          {/* 탭 네비 */}
           <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl overflow-x-auto">
             {TABS.map((tab) => (
               <button
@@ -123,25 +121,24 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
             ))}
           </div>
 
-          {/* 배경지식 */}
           {activeTab === 'background' && (
             <div className="space-y-4">
               <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <span className="text-lg">🏛️</span> 역사적 배경
+                  <span className="text-lg">🏛️</span> {t(T.bookDetail.historicalContext).replace('🏛️ ', '')}
                 </h3>
                 <p className="text-gray-600 leading-relaxed">{content.background.historical_context}</p>
               </div>
               <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <span className="text-lg">✍️</span> 작가 소개
+                  <span className="text-lg">✍️</span> {t(T.bookDetail.authorBio).replace('✍️ ', '')}
                 </h3>
                 <p className="text-gray-600 leading-relaxed">{content.background.author_bio}</p>
               </div>
               {content.background.allegory_map?.length > 0 && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-6">
                   <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <span className="text-lg">🗺️</span> 알레고리 대조표
+                    <span className="text-lg">🗺️</span> {t(T.bookDetail.allegoryMap).replace('🗺️ ', '')}
                   </h3>
                   <div className="space-y-2">
                     {content.background.allegory_map.map((item, i) => (
@@ -157,7 +154,6 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
             </div>
           )}
 
-          {/* 핵심 테마 */}
           {activeTab === 'themes' && (
             <div className="space-y-4">
               {content.themes.map((theme, i) => (
@@ -165,7 +161,7 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
                   <h3 className="font-bold text-gray-900 text-lg mb-2">{theme.name}</h3>
                   <p className="text-gray-600 leading-relaxed mb-4">{theme.description}</p>
                   <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase mb-2">핵심 장면</p>
+                    <p className="text-xs font-semibold text-gray-400 uppercase mb-2">{t(T.bookDetail.keyScenes)}</p>
                     <div className="space-y-1.5">
                       {theme.key_scenes.map((scene, j) => (
                         <div key={j} className="flex items-start gap-2 text-sm text-gray-600">
@@ -180,10 +176,9 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
             </div>
           )}
 
-          {/* 에세이 질문 */}
           {activeTab === 'essays' && (
             <div className="space-y-3">
-              <p className="text-sm text-gray-500 mb-4">질문을 클릭하면 에세이 에디터로 이동합니다.</p>
+              <p className="text-sm text-gray-500 mb-4">{t(T.bookDetail.clickForEssay)}</p>
               {content.essay_prompts.map((ep, i) => (
                 <div
                   key={i}
@@ -198,7 +193,7 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
                       <p className="text-gray-800 font-medium leading-relaxed group-hover:text-indigo-700 transition-colors">
                         {ep.question}
                       </p>
-                      <p className="text-xs text-gray-400 mt-2">핵심: {ep.focus}</p>
+                      <p className="text-xs text-gray-400 mt-2">{t(T.bookDetail.focus)}: {ep.focus}</p>
                     </div>
                     <span className="text-indigo-400 opacity-0 group-hover:opacity-100 transition-all">→</span>
                   </div>
@@ -207,7 +202,6 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
             </div>
           )}
 
-          {/* 챕터 질문 */}
           {activeTab === 'chapters' && (
             <div className="space-y-4">
               {Object.entries(content.chapter_questions).map(([chapter, questions]) => (
@@ -226,7 +220,6 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
             </div>
           )}
 
-          {/* 핵심 어휘 */}
           {activeTab === 'vocab' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {content.vocab_spotlight.map((item, i) => (

@@ -1,6 +1,8 @@
 'use client'
 
 import { useRef } from 'react'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 import type { Profile, Milestone } from '@/types'
 
 interface Props {
@@ -13,10 +15,10 @@ interface Props {
   approvedMilestones: Milestone[]
 }
 
-const MILESTONE_META: Record<number, { label: string; emoji: string }> = {
-  10: { label: '소보상', emoji: '🎀' },
-  20: { label: '중간보상', emoji: '🏆' },
-  30: { label: '대보상', emoji: '🎁' },
+const MILESTONE_META: Record<number, { emoji: string }> = {
+  10: { emoji: '🎀' },
+  20: { emoji: '🏆' },
+  30: { emoji: '🎁' },
 }
 
 export default function CertificateClient({
@@ -29,19 +31,22 @@ export default function CertificateClient({
   approvedMilestones,
 }: Props) {
   const certRef = useRef<HTMLDivElement>(null)
+  const { t, lang } = useT()
 
   const isComplete = completedDays >= 25 || currentDay >= 30
   const completionRate = Math.round((completedDays / 30) * 100)
 
-  const startFmt = new Date(startDate).toLocaleDateString('ko-KR', {
+  const startFmt = new Date(startDate).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
   })
-  const today = new Date().toLocaleDateString('ko-KR', {
+  const today = new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
   })
 
-  function handlePrint() {
-    window.print()
+  const MILESTONE_LABEL: Record<number, string> = {
+    10: t(T.parent.milestoneLabel[10]),
+    20: t(T.parent.milestoneLabel[20]),
+    30: t(T.parent.milestoneLabel[30]),
   }
 
   return (
@@ -49,18 +54,18 @@ export default function CertificateClient({
       {/* 화면 전용 헤더 */}
       <div className="print:hidden mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">🎓 30일 챌린지 수료증</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t(T.certificate.title)}</h1>
           <p className="text-sm text-gray-400 mt-0.5">
             {isComplete
-              ? '축하해요! 챌린지를 훌륭하게 완료했어요.'
-              : `현재 Day ${currentDay} 진행 중 · 완료 시 수료증이 발급됩니다.`}
+              ? t(T.certificate.complete)
+              : T.certificate.inProgress(currentDay, lang)}
           </p>
         </div>
         <button
-          onClick={handlePrint}
+          onClick={() => window.print()}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm"
         >
-          🖨️ 인쇄하기
+          {t(T.certificate.print)}
         </button>
       </div>
 
@@ -83,18 +88,18 @@ export default function CertificateClient({
         </div>
 
         <div className="relative">
-          {/* 상단 로고 영역 */}
+          {/* 상단 로고 */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2.5 rounded-2xl shadow-md mb-4">
               <span className="text-xl">📚</span>
               <span className="font-bold text-base tracking-wide">Scholar Quest</span>
             </div>
-            <p className="text-xs text-gray-400 uppercase tracking-widest">30-Day English Challenge</p>
+            <p className="text-xs text-gray-400 uppercase tracking-widest">{t(T.certificate.certSubtitle)}</p>
           </div>
 
-          {/* 수료증 타이틀 */}
+          {/* 타이틀 */}
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-black text-gray-800 mb-1 tracking-tight">수 료 증</h2>
+            <h2 className="text-3xl font-black text-gray-800 mb-1 tracking-tight">{t(T.certificate.certTitle)}</h2>
             <div className="flex items-center gap-2 justify-center">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent to-indigo-300" />
               <span className="text-indigo-400 text-sm">Certificate of Achievement</span>
@@ -102,26 +107,25 @@ export default function CertificateClient({
             </div>
           </div>
 
-          {/* 이름 + 본문 */}
+          {/* 이름 */}
           <div className="text-center mb-8">
-            <p className="text-gray-500 text-sm mb-2">이 증서는</p>
+            <p className="text-gray-500 text-sm mb-2">{t(T.certificate.subject)}</p>
             <p className="text-4xl font-black text-indigo-700 mb-2 tracking-tight">{profile.name}</p>
             {profile.grade && (
-              <p className="text-gray-400 text-sm mb-4">({profile.grade}학년)</p>
+              <p className="text-gray-400 text-sm mb-4">({T.common.grade(profile.grade, lang)})</p>
             )}
             <p className="text-gray-600 text-base leading-relaxed max-w-sm mx-auto">
-              Scholar Quest <span className="font-semibold text-gray-800">30일 영어 학습 챌린지</span>에
-              성실히 참여하여 탁월한 학습 성과를 이루었음을 증명합니다.
+              {T.certificate.body(lang)}
             </p>
           </div>
 
-          {/* 통계 카드들 */}
+          {/* 통계 */}
           <div className="grid grid-cols-4 gap-3 mb-8">
             {[
-              { label: '총 획득 XP', value: `${profile.xp_total.toLocaleString()}`, unit: 'XP', color: 'indigo' },
-              { label: '완료한 날', value: `${completedDays}`, unit: '일 / 30일', color: 'green' },
-              { label: '에세이 제출', value: `${essayCount}`, unit: '편', color: 'purple' },
-              { label: '어휘 세션', value: `${vocabCount}`, unit: '회', color: 'orange' },
+              { label: t(T.certificate.totalXp), value: profile.xp_total.toLocaleString(), unit: 'XP', color: 'indigo' },
+              { label: t(T.certificate.completedDays), value: `${completedDays}`, unit: T.certificate.daysUnit(completedDays, lang), color: 'green' },
+              { label: t(T.certificate.essays), value: `${essayCount}`, unit: T.certificate.essaysUnit(essayCount, lang), color: 'purple' },
+              { label: t(T.certificate.vocabSessions), value: `${vocabCount}`, unit: lang === 'ko' ? '회' : 'sessions', color: 'orange' },
             ].map((stat) => (
               <div
                 key={stat.label}
@@ -142,7 +146,7 @@ export default function CertificateClient({
           {/* 완료율 바 */}
           <div className="mb-8">
             <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-              <span>챌린지 완료율</span>
+              <span>{t(T.certificate.completionRate)}</span>
               <span className="font-semibold text-indigo-600">{completionRate}%</span>
             </div>
             <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -156,7 +160,7 @@ export default function CertificateClient({
           {/* 승인된 마일스톤 */}
           {approvedMilestones.length > 0 && (
             <div className="mb-8">
-              <p className="text-xs text-gray-500 text-center mb-3 uppercase tracking-widest">달성 마일스톤</p>
+              <p className="text-xs text-gray-500 text-center mb-3 uppercase tracking-widest">{t(T.certificate.milestones)}</p>
               <div className="flex justify-center gap-4">
                 {approvedMilestones.map((m) => {
                   const meta = MILESTONE_META[m.day_number]
@@ -166,7 +170,7 @@ export default function CertificateClient({
                         {meta?.emoji}
                       </div>
                       <p className="text-xs font-semibold text-gray-700">Day {m.day_number}</p>
-                      <p className="text-xs text-gray-400">{meta?.label}</p>
+                      <p className="text-xs text-gray-400">{MILESTONE_LABEL[m.day_number]}</p>
                       {m.reward_description && (
                         <p className="text-xs text-amber-600 mt-0.5 italic">"{m.reward_description}"</p>
                       )}
@@ -180,12 +184,12 @@ export default function CertificateClient({
           {/* 날짜 + 서명 */}
           <div className="flex items-end justify-between pt-6 border-t border-gray-100">
             <div className="text-xs text-gray-400 space-y-0.5">
-              <p>챌린지 시작일: <span className="text-gray-600 font-medium">{startFmt}</span></p>
-              <p>발급일: <span className="text-gray-600 font-medium">{today}</span></p>
+              <p>{t(T.certificate.startDate)} <span className="text-gray-600 font-medium">{startFmt}</span></p>
+              <p>{t(T.certificate.issueDate)} <span className="text-gray-600 font-medium">{today}</span></p>
             </div>
             <div className="text-center">
               <div className="w-24 border-b border-gray-300 mb-1" />
-              <p className="text-xs text-gray-400">부모님 서명</p>
+              <p className="text-xs text-gray-400">{t(T.certificate.signature)}</p>
             </div>
             <div className="text-right">
               <div className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-1.5">
@@ -197,18 +201,13 @@ export default function CertificateClient({
         </div>
       </div>
 
-      {/* 진행 중 안내 메시지 */}
       {!isComplete && (
         <div className="print:hidden mt-4 bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-700">
-          <p className="font-semibold mb-1">📌 아직 진행 중이에요</p>
-          <p className="text-indigo-500 text-xs">
-            30일 중 {completedDays}일 완료했어요. 25일 이상 완료하면 수료증이 확정됩니다.
-            지금도 미리 인쇄해볼 수 있어요!
-          </p>
+          <p className="font-semibold mb-1">{t(T.certificate.inProgressNote)}</p>
+          <p className="text-indigo-500 text-xs">{T.certificate.inProgressDesc(completedDays, lang)}</p>
         </div>
       )}
 
-      {/* 인쇄 스타일 */}
       <style jsx global>{`
         @media print {
           body * { visibility: hidden !important; }

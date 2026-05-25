@@ -13,7 +13,7 @@ export default async function VocabPage() {
 
   const { data: books } = await supabase
     .from('books')
-    .select('id, title, author')
+    .select('*')
     .eq('user_id', profile.id)
     .eq('status', 'reading')
     .order('created_at', { ascending: false })
@@ -28,8 +28,7 @@ export default async function VocabPage() {
 
   return (
     <VocabClient
-      profile={profile}
-      books={books ?? []}
+      readingBooks={books ?? []}
       todaySession={todaySession ?? null}
     />
   )

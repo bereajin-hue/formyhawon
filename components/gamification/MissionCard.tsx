@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 import type { Mission } from '@/types'
 
 interface MissionCardProps {
@@ -28,6 +30,7 @@ const DONE_COLORS: Record<string, string> = {
 
 export default function MissionCard({ mission, onComplete }: MissionCardProps) {
   const [loading, setLoading] = useState(false)
+  const { t } = useT()
 
   async function handleClick() {
     if (mission.completed || loading) return
@@ -56,9 +59,9 @@ export default function MissionCard({ mission, onComplete }: MissionCardProps) {
       <h3 className={`font-semibold text-sm ${mission.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
         {mission.title}
       </h3>
-      {loading && <p className="text-xs text-gray-400 mt-1">처리 중...</p>}
+      {loading && <p className="text-xs text-gray-400 mt-1">{t(T.common.processing)}</p>}
       {!mission.completed && !loading && (
-        <p className="text-xs text-gray-400 mt-1">클릭해서 완료 표시</p>
+        <p className="text-xs text-gray-400 mt-1">{t(T.mission.clickComplete)}</p>
       )}
     </div>
   )

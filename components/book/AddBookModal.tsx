@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 
 interface AddBookModalProps {
   onClose: () => void
@@ -12,6 +14,7 @@ export default function AddBookModal({ onClose, onAdd }: AddBookModalProps) {
   const [author, setAuthor] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const { t } = useT()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -22,7 +25,7 @@ export default function AddBookModal({ onClose, onAdd }: AddBookModalProps) {
       await onAdd(title.trim(), author.trim())
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : t(T.addBook.errorDefault))
     }
     setLoading(false)
   }
@@ -32,30 +35,30 @@ export default function AddBookModal({ onClose, onAdd }: AddBookModalProps) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-bold text-gray-900">📚 새 책 추가</h2>
+            <h2 className="text-lg font-bold text-gray-900">{t(T.addBook.title)}</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">책 제목 *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t(T.addBook.bookTitle)}</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="예: Animal Farm"
+                placeholder={t(T.addBook.titlePlaceholder)}
                 required
                 autoFocus
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-gray-800"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">저자 *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t(T.addBook.author)}</label>
               <input
                 type="text"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
-                placeholder="예: George Orwell"
+                placeholder={t(T.addBook.authorPlaceholder)}
                 required
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-gray-800"
               />
@@ -72,9 +75,9 @@ export default function AddBookModal({ onClose, onAdd }: AddBookModalProps) {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                   </svg>
-                  <span className="font-medium text-sm">Claude가 학습 자료를 만들고 있어요...</span>
+                  <span className="font-medium text-sm">{t(T.addBook.generatingMaterials)}</span>
                 </div>
-                <p className="text-xs text-indigo-400">30초 정도 걸릴 수 있어요</p>
+                <p className="text-xs text-indigo-400">{t(T.addBook.generatingDesc)}</p>
               </div>
             )}
 
@@ -85,14 +88,14 @@ export default function AddBookModal({ onClose, onAdd }: AddBookModalProps) {
                 disabled={loading}
                 className="flex-1 py-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition-all disabled:opacity-50"
               >
-                취소
+                {t(T.common.cancel)}
               </button>
               <button
                 type="submit"
                 disabled={loading || !title.trim() || !author.trim()}
                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-medium py-3 rounded-xl transition-all active:scale-95"
               >
-                {loading ? '생성 중...' : '추가하기 ✨'}
+                {loading ? t(T.addBook.adding) : t(T.addBook.add)}
               </button>
             </div>
           </form>

@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 import type { Book } from '@/types'
 
 interface BookCardProps {
@@ -17,12 +19,6 @@ const COVER_COLORS = [
   'from-orange-400 to-orange-600',
 ]
 
-const STATUS_LABELS: Record<Book['status'], string> = {
-  reading: '읽는 중',
-  completed: '완독 ✓',
-  wishlist: '읽고 싶어요',
-}
-
 const STATUS_COLORS: Record<Book['status'], string> = {
   reading: 'bg-blue-100 text-blue-600',
   completed: 'bg-green-100 text-green-600',
@@ -35,6 +31,14 @@ function getCoverColor(title: string) {
 }
 
 export default function BookCard({ book, onStatusChange }: BookCardProps) {
+  const { t, lang } = useT()
+
+  const STATUS_LABELS: Record<Book['status'], string> = {
+    reading: t(T.bookCard.reading),
+    completed: t(T.bookCard.completed),
+    wishlist: t(T.bookCard.wishlist),
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all group">
       {/* 책 표지 */}
@@ -57,7 +61,7 @@ export default function BookCard({ book, onStatusChange }: BookCardProps) {
             {STATUS_LABELS[book.status]}
           </span>
           {book.grade_level && (
-            <span className="text-xs text-gray-400">{book.grade_level}학년</span>
+            <span className="text-xs text-gray-400">{T.common.grade(book.grade_level, lang)}</span>
           )}
         </div>
 
@@ -66,13 +70,13 @@ export default function BookCard({ book, onStatusChange }: BookCardProps) {
             href={`/library/${book.id}`}
             className="flex-1 text-center text-xs bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition-all active:scale-95 font-medium"
           >
-            학습 자료 보기
+            {t(T.bookCard.viewMaterials)}
           </Link>
           {book.status === 'reading' && onStatusChange && (
             <button
               onClick={() => onStatusChange(book.id, 'completed')}
               className="text-xs bg-green-50 hover:bg-green-100 text-green-600 px-3 py-2 rounded-lg transition-all border border-green-200"
-              title="완독 표시"
+              title={t(T.bookCard.markComplete)}
             >
               ✓
             </button>

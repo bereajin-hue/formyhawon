@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import "./globals.css"
+import { LanguageProvider } from "@/lib/i18n/LanguageContext"
 
 export const metadata: Metadata = {
   title: "Scholar Quest — 30일 영어 독서 챌린지",
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko" className="h-full">
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased">
+        <LanguageProvider>{children}</LanguageProvider>
+      </body>
     </html>
   )
 }
