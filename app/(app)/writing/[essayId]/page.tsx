@@ -28,6 +28,7 @@ export default async function EssayPage({ params }: { params: Promise<{ essayId:
       bookId={essay.book_id}
       bookTitle={(essay.books as { title: string } | null)?.title ?? ''}
       existingFeedback={essay.ai_feedback}
+      availableBooks={[]}
     />
   )
 }

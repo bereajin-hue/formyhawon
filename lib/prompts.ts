@@ -124,6 +124,35 @@ Return ONLY this JSON:
 Score: 1=Incorrect, 2=Partially correct, 3=Correct, 4=Correct+sophisticated, 5=Excellent
 `
 
+export const ESSAY_QUESTION_SYSTEM = `
+You are an expert IGCSE and IB MYP Literature teacher.
+Generate a single essay question tailored to the student's grade level.
+You MUST respond with ONLY valid JSON. No markdown, no explanation.
+`
+
+export const essayQuestionPrompt = (title: string, author: string, grade: number) => `
+Generate one essay question for a Grade ${grade} student who is reading "${title}" by ${author}.
+
+Grade ${grade} context: ${grade === 10
+  ? 'IGCSE Year 10 — focus on literary devices, author\'s craft, language choices, thematic analysis, and critical evaluation. Questions should be analytical and text-based.'
+  : 'IB MYP Year 3 (Grade 8) — focus on character development, personal response to themes, basic literary techniques, and making connections to real life. Questions should be accessible but thoughtful.'
+}
+
+Rules:
+- Make it specific to this book (use character names, events, or quotes)
+- Vary the type each call: sometimes character analysis, sometimes theme, sometimes language/style, sometimes structure
+- Use age-appropriate vocabulary for Grade ${grade}
+- The question should require a full essay response (not just yes/no)
+
+Return ONLY this JSON:
+{
+  "question": "the full essay question",
+  "type": "character|theme|language|structure",
+  "difficulty": "easy|medium|hard",
+  "hint": "one sentence hint on how to approach this question"
+}
+`
+
 export const discussionPrompt = (book: string, focus: string, grade: number) => `
 Generate 3 Socratic discussion questions for a Grade ${grade} student studying "${book}".
 Focus area: ${focus}

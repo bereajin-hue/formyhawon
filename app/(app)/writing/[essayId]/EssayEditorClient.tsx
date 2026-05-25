@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import FeedbackPanel from '@/components/writing/FeedbackPanel'
 import type { Profile, EssayFeedback } from '@/types'
 
+interface AvailableBook { id: string; title: string; author: string }
+
 interface Props {
   profile: Profile
   essayId: string | null
@@ -12,21 +14,59 @@ interface Props {
   promptText: string
   bookId: string | null
   bookTitle: string
+  bookAuthor?: string
   existingFeedback: EssayFeedback | null
+  availableBooks?: AvailableBook[]
 }
 
 export default function EssayEditorClient({
-  profile, essayId, initialContent, promptText, bookId, bookTitle, existingFeedback,
+  profile, essayId, initialContent, promptText, bookId: initialBookId,
+  bookTitle: initialBookTitle, bookAuthor: initialBookAuthor = '',
+  existingFeedback, availableBooks = [],
 }: Props) {
   const router = useRouter()
   const [content, setContent] = useState(initialContent)
   const [prompt, setPrompt] = useState(promptText)
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(initialBookId)
+  const [bookTitle, setBookTitle] = useState(initialBookTitle)
   const [feedback, setFeedback] = useState<EssayFeedback | null>(existingFeedback)
   const [xpEarned, setXpEarned] = useState(0)
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<'idle' | 'saving' | 'analyzing' | 'done'>('idle')
   const [xpPopup, setXpPopup] = useState<number | null>(null)
+  const [questionLoading, setQuestionLoading] = useState(false)
+  const [questionHint, setQuestionHint] = useState('')
   const savedEssayId = useRef<string | null>(essayId)
+
+  function handleBookSelect(bookId: string) {
+    const book = availableBooks.find((b) => b.id === bookId)
+    if (book) {
+      setSelectedBookId(book.id)
+      setBookTitle(book.title)
+      setPrompt('')
+      setQuestionHint('')
+    }
+  }
+
+  async function handleGenerateQuestion() {
+    if (!selectedBookId && !bookTitle) return
+    setQuestionLoading(true)
+    setQuestionHint('')
+    try {
+      const res = await fetch('/api/ai/essay-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookTitle, bookAuthor: initialBookAuthor, bookId: selectedBookId }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setPrompt(data.question)
+      setQuestionHint(data.hint)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '질문 생성 오류')
+    }
+    setQuestionLoading(false)
+  }
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length
   const canSubmit = wordCount >= 400 && prompt.trim().length > 0
@@ -51,7 +91,7 @@ export default function EssayEditorClient({
         const res = await fetch('/api/essays', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bookId, promptText: prompt, content }),
+          body: JSON.stringify({ bookId: selectedBookId, promptText: prompt, content }),
         })
         const data = await res.json()
         if (data.error) throw new Error(data.error)
@@ -117,12 +157,27 @@ export default function EssayEditorClient({
       )}
 
       {/* 헤더 */}
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600">← 뒤로</button>
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">✍️ 에세이 에디터</h1>
-          {bookTitle && <p className="text-xs text-indigo-500 mt-0.5">📚 {bookTitle}</p>}
+      <div className="flex items-start justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600">← 뒤로</button>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">✍️ 에세이 에디터</h1>
+            {bookTitle && <p className="text-xs text-indigo-500 mt-0.5">📚 {bookTitle}</p>}
+          </div>
         </div>
+        {/* 책 선택 (새 에세이 + 책 없을 때) */}
+        {!essayId && availableBooks.length > 0 && !initialBookId && (
+          <select
+            onChange={(e) => handleBookSelect(e.target.value)}
+            defaultValue=""
+            className="text-sm border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+          >
+            <option value="" disabled>📚 책 선택 (선택사항)</option>
+            {availableBooks.map((b) => (
+              <option key={b.id} value={b.id}>{b.title}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -130,14 +185,50 @@ export default function EssayEditorClient({
         <div className="space-y-4">
           {/* 질문 */}
           <div className="bg-white rounded-2xl border border-gray-200 p-5">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">에세이 질문</label>
-            {promptText ? (
-              <p className="text-gray-800 leading-relaxed text-sm">{prompt}</p>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-semibold text-gray-700">에세이 질문</label>
+              {selectedBookId && (
+                <button
+                  onClick={handleGenerateQuestion}
+                  disabled={questionLoading || loading}
+                  className="flex items-center gap-1.5 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-full transition-all disabled:opacity-50 font-medium"
+                >
+                  {questionLoading ? (
+                    <>
+                      <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                      생성 중...
+                    </>
+                  ) : (
+                    <> ✨ AI 질문 받기</>
+                  )}
+                </button>
+              )}
+            </div>
+            {prompt ? (
+              <div>
+                <p className="text-gray-800 leading-relaxed text-sm">{prompt}</p>
+                {questionHint && (
+                  <p className="text-xs text-purple-500 mt-2 bg-purple-50 rounded-lg px-3 py-2">
+                    💡 힌트: {questionHint}
+                  </p>
+                )}
+                {!promptText && (
+                  <button
+                    onClick={() => { setPrompt(''); setQuestionHint('') }}
+                    className="text-xs text-gray-400 hover:text-gray-600 mt-2"
+                  >
+                    직접 입력하기
+                  </button>
+                )}
+              </div>
             ) : (
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="에세이 질문을 입력하세요..."
+                placeholder={selectedBookId ? "직접 입력하거나 위의 'AI 질문 받기' 버튼을 눌러보세요" : "에세이 질문을 입력하세요..."}
                 rows={3}
                 className="w-full text-sm text-gray-800 border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
               />
