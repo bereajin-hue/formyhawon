@@ -48,6 +48,19 @@ export default function SetupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-indigo-100">
+        {/* 로그아웃 버튼 */}
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut()
+              router.push('/login')
+            }}
+            className="text-xs text-gray-400 hover:text-red-400 transition-colors"
+          >
+            🚪 로그아웃
+          </button>
+        </div>
+
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl mb-4">
             <span className="text-3xl">🎯</span>
