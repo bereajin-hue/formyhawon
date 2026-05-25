@@ -28,12 +28,18 @@ const DONE_COLORS: Record<string, string> = {
   essay: 'border-purple-300 bg-purple-100',
 }
 
+// vocab과 essay는 실제 활동 완료 시 자동 처리됨
+const AUTO_TYPES = new Set(['vocab', 'essay'])
+
 export default function MissionCard({ mission, onComplete }: MissionCardProps) {
   const [loading, setLoading] = useState(false)
   const { t } = useT()
 
+  const isAuto = AUTO_TYPES.has(mission.type)
+  const isClickable = !isAuto && !mission.completed
+
   async function handleClick() {
-    if (mission.completed || loading) return
+    if (!isClickable || loading) return
     setLoading(true)
     await onComplete(mission.id)
     setLoading(false)
@@ -41,9 +47,14 @@ export default function MissionCard({ mission, onComplete }: MissionCardProps) {
 
   const color = mission.completed ? DONE_COLORS[mission.type] : COLORS[mission.type]
 
+  const titlePair = T.mission.titles[mission.type as keyof typeof T.mission.titles]
+  const autoHintPair = T.mission.autoHint[mission.type as keyof typeof T.mission.autoHint]
+
   return (
-    <div className={`rounded-xl border-2 p-5 transition-all ${color} ${!mission.completed ? 'cursor-pointer hover:shadow-md' : ''}`}
-      onClick={handleClick}>
+    <div
+      className={`rounded-xl border-2 p-5 transition-all ${color} ${isClickable ? 'cursor-pointer hover:shadow-md' : ''}`}
+      onClick={handleClick}
+    >
       <div className="flex items-start justify-between mb-3">
         <span className="text-2xl">{ICONS[mission.type]}</span>
         <div className="flex items-center gap-2">
@@ -56,12 +67,25 @@ export default function MissionCard({ mission, onComplete }: MissionCardProps) {
           </div>
         </div>
       </div>
+
       <h3 className={`font-semibold text-sm ${mission.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-        {t(T.mission.titles[mission.type as keyof typeof T.mission.titles] ?? [mission.title, mission.title])}
+        {titlePair ? t(titlePair) : mission.title}
       </h3>
-      {loading && <p className="text-xs text-gray-400 mt-1">{t(T.common.processing)}</p>}
-      {!mission.completed && !loading && (
-        <p className="text-xs text-gray-400 mt-1">{t(T.mission.clickComplete)}</p>
+
+      {loading && (
+        <p className="text-xs text-gray-400 mt-1">{t(T.common.processing)}</p>
+      )}
+      {!loading && !mission.completed && (
+        <p className="text-xs mt-1.5">
+          {isAuto ? (
+            <span className="text-indigo-400 flex items-center gap-1">
+              <span>⚡</span>
+              <span>{autoHintPair ? t(autoHintPair) : ''}</span>
+            </span>
+          ) : (
+            <span className="text-gray-400">{t(T.mission.clickComplete)}</span>
+          )}
+        </p>
       )}
     </div>
   )
