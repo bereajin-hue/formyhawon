@@ -57,7 +57,7 @@ export default function MissionCard({ mission, onComplete }: MissionCardProps) {
         </div>
       </div>
       <h3 className={`font-semibold text-sm ${mission.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-        {mission.title}
+        {t(T.mission.titles[mission.type as keyof typeof T.mission.titles] ?? [mission.title, mission.title])}
       </h3>
       {loading && <p className="text-xs text-gray-400 mt-1">{t(T.common.processing)}</p>}
       {!mission.completed && !loading && (

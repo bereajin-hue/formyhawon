@@ -67,6 +67,11 @@ export const T = {
   // ──────────── 미션 카드 ────────────
   mission: {
     clickComplete: ['클릭해서 완료 표시', 'Click to complete'] as P,
+    titles: {
+      vocab: ['어휘 세션 완료 (EN 단어 + 문장 쓰기)', 'Vocabulary Session (EN words + sentences)'] as P,
+      reading: ['독서 30분 + 챕터 질문 답변', '30-min Reading + Chapter Q&A'] as P,
+      essay: ['에세이 문단 쓰기 또는 어휘 복습', 'Essay Writing or Vocabulary Review'] as P,
+    },
   },
 
   // ──────────── 캘린더 ────────────
