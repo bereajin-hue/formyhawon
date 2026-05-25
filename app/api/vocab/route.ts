@@ -85,7 +85,7 @@ export async function PATCH(request: Request) {
     .eq('id', sessionId)
     .eq('user_id', profile.id)
 
-  const xpEarned = 15
+  const xpEarned = 10
   const newXp = (profile.xp_total ?? 0) + xpEarned
   await supabase.from('profiles').update({ xp_total: newXp }).eq('id', profile.id)
   await supabase.from('xp_log').insert({ user_id: profile.id, amount: xpEarned, reason: '어휘 세션 완료' })

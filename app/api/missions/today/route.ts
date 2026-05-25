@@ -2,9 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 const DEFAULT_MISSIONS = [
-  { id: 'vocab', title: '어휘 세션 완료 (EN 단어 + 문장 쓰기)', type: 'vocab', xp: 20, completed: false },
-  { id: 'reading', title: '독서 30분 + 챕터 질문 답변', type: 'reading', xp: 15, completed: false },
-  { id: 'essay', title: '에세이 문단 쓰기 또는 어휘 복습', type: 'essay', xp: 15, completed: false },
+  { id: 'vocab', title: '어휘 세션 완료 (EN 단어 + 문장 쓰기)', type: 'vocab', xp: 10, completed: false },
+  { id: 'reading', title: '독서 30분 + 챕터 질문 답변', type: 'reading', xp: 10, completed: false },
+  { id: 'essay', title: '에세이 문단 쓰기 또는 어휘 복습', type: 'essay', xp: 10, completed: false },
 ]
 
 export async function GET() {

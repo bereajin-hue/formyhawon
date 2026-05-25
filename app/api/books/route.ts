@@ -62,13 +62,13 @@ export async function PATCH(request: Request) {
   const { error } = await supabase.from('books').update(updates).eq('id', bookId)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // 완독 시 XP +100
+  // 완독 시 XP +50
   if (status === 'completed') {
     const { data: profile } = await supabase
       .from('profiles').select('id, xp_total').eq('user_id', user.id).single()
     if (profile) {
-      await supabase.from('profiles').update({ xp_total: profile.xp_total + 100 }).eq('id', profile.id)
-      await supabase.from('xp_log').insert({ user_id: profile.id, amount: 100, reason: 'book_completed' })
+      await supabase.from('profiles').update({ xp_total: profile.xp_total + 50 }).eq('id', profile.id)
+      await supabase.from('xp_log').insert({ user_id: profile.id, amount: 50, reason: 'book_completed' })
     }
   }
 

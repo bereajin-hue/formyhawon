@@ -6,9 +6,9 @@ interface XPBarProps {
 }
 
 const MILESTONES = [
-  { day: 10, xp: 200 },
-  { day: 20, xp: 500 },
-  { day: 30, xp: 1000 },
+  { day: 10, xp: 500 },
+  { day: 20, xp: 900 },
+  { day: 30, xp: 1500 },
 ]
 
 export function getNextMilestone(xp: number) {

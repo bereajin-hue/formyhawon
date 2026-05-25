@@ -77,7 +77,7 @@ export async function PATCH(request: Request) {
 
   // XP 지급
   if (xpBonus && xpBonus > 0) {
-    const baseXP = isRevision ? 30 : 50
+    const baseXP = isRevision ? 10 : 20
     const totalXP = baseXP + xpBonus
     await supabase.from('profiles').update({ xp_total: profile.xp_total + totalXP }).eq('id', profile.id)
     await supabase.from('xp_log').insert({
