@@ -1,4 +1,4 @@
-import { getAnthropicClient } from '@/lib/claude'
+import { getAnthropicClient, parseClaudeJSON } from '@/lib/claude'
 import { createClient } from '@/lib/supabase/server'
 import { BOOK_QUEST_SYSTEM, bookQuestPrompt } from '@/lib/prompts'
 import { NextResponse } from 'next/server'
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     })
 
     const rawText = message.content[0].type === 'text' ? message.content[0].text : '{}'
-    const content = JSON.parse(rawText)
+    const content = parseClaudeJSON(rawText)
 
     // 3. 캐시 저장
     await supabase.from('book_quests').insert({
