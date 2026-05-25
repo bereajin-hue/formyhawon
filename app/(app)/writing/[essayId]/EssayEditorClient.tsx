@@ -59,9 +59,9 @@ export default function EssayEditorClient({
         savedEssayId.current = data.id
       }
 
-      // 2. AI 첨삭 (스트리밍)
+      // 2. AI 첨삭
       setStatus('analyzing')
-      const streamRes = await fetch('/api/ai/essay-feedback', {
+      const feedbackRes = await fetch('/api/ai/essay-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -72,34 +72,10 @@ export default function EssayEditorClient({
         }),
       })
 
-      // 스트림에서 전체 텍스트 수집
-      const reader = streamRes.body!.getReader()
-      const decoder = new TextDecoder()
-      let fullText = ''
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        fullText += decoder.decode(value, { stream: true })
-      }
+      const feedbackData = await feedbackRes.json()
+      if (feedbackData.error) throw new Error(feedbackData.error)
 
-      // Anthropic 스트림 이벤트에서 텍스트 추출
-      let jsonText = ''
-      for (const line of fullText.split('\n')) {
-        if (line.startsWith('data: ')) {
-          try {
-            const evt = JSON.parse(line.slice(6))
-            if (evt.type === 'content_block_delta' && evt.delta?.text) {
-              jsonText += evt.delta.text
-            }
-          } catch { /* skip */ }
-        }
-      }
-
-      // 마크다운 코드블록 제거
-      const cleaned = jsonText
-        .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
-
-      const parsedFeedback: EssayFeedback = JSON.parse(cleaned)
+      const parsedFeedback: EssayFeedback = feedbackData.feedback
       setFeedback(parsedFeedback)
 
       // 3. 피드백 + XP 저장
