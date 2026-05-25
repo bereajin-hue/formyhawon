@@ -21,13 +21,11 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
   const [xpPopup, setXpPopup] = useState<number | null>(null)
 
   useEffect(() => {
-    // 미션이 없으면 생성
     if (!dailyMission) {
       fetch('/api/missions/today')
         .then((r) => r.json())
         .then((d) => setMissions(d.missions ?? []))
     }
-    // 일일 체크인
     fetch('/api/xp/checkin', { method: 'POST' })
       .then((r) => r.json())
       .then((d) => {
@@ -65,14 +63,12 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
 
   return (
     <div className="max-w-4xl relative">
-      {/* XP 팝업 */}
       {xpPopup !== null && (
         <div className="fixed top-8 right-8 z-50 bg-indigo-600 text-white px-5 py-3 rounded-2xl shadow-lg animate-bounce font-bold text-lg">
           +{xpPopup} XP! ✨
         </div>
       )}
 
-      {/* 헤더 */}
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -89,7 +85,6 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
         )}
       </div>
 
-      {/* 전체 완료 배너 */}
       {allDone && (
         <div className="mb-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl p-5 text-white shadow-md">
           <p className="font-bold text-lg">🎉 오늘 미션 모두 완료!</p>
@@ -97,7 +92,6 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
         </div>
       )}
 
-      {/* 오늘의 미션 */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-bold text-gray-800">오늘의 미션</h2>
@@ -123,7 +117,6 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
         )}
       </div>
 
-      {/* XP 현황 */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-gray-800">XP 현황</h2>
@@ -132,9 +125,9 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
         <XPBar current={xp} />
         <div className="grid grid-cols-3 gap-3 mt-4">
           {[
-            { day: 10, xp: 200, label: '소보상' },
-            { day: 20, xp: 500, label: '중간보상' },
-            { day: 30, xp: 1000, label: '대보상 🎁' },
+            { day: 10, xp: 500, label: '소보상' },
+            { day: 20, xp: 900, label: '중간보상' },
+            { day: 30, xp: 1500, label: '대보상 🎁' },
           ].map((m) => (
             <div key={m.day} className={`rounded-xl p-3 text-center border ${xp >= m.xp ? 'border-green-300 bg-green-50' : 'border-gray-100 bg-gray-50'}`}>
               <p className="text-xs text-gray-500">Day {m.day}</p>
@@ -146,7 +139,6 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
         </div>
       </div>
 
-      {/* 30일 캘린더 */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
         <Calendar30
           completedDays={completedDays}
