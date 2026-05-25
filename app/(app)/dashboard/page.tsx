@@ -2,6 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardClient from './DashboardClient'
 
+const THRESHOLDS = [
+  { day_number: 10, xp_required: 500 },
+  { day_number: 20, xp_required: 900 },
+  { day_number: 30, xp_required: 1500 },
+]
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -14,22 +20,14 @@ export default async function DashboardPage() {
 
   const today = new Date().toISOString().split('T')[0]
 
-  // 오늘의 미션 조회
   const { data: dailyMission } = await supabase
-    .from('daily_missions')
-    .select('*')
-    .eq('user_id', profile.id)
-    .eq('mission_date', today)
-    .single()
+    .from('daily_missions').select('*')
+    .eq('user_id', profile.id).eq('mission_date', today).single()
 
-  // 완료된 날 목록 (30일 캘린더용)
   const { data: allMissions } = await supabase
-    .from('daily_missions')
-    .select('mission_date, all_done')
-    .eq('user_id', profile.id)
-    .order('mission_date', { ascending: true })
+    .from('daily_missions').select('mission_date, all_done')
+    .eq('user_id', profile.id).order('mission_date', { ascending: true })
 
-  // 챌린지 시작일 계산 (첫 미션 날짜 또는 오늘)
   const startDate = allMissions?.[0]?.mission_date ?? today
   const start = new Date(startDate)
   const todayDate = new Date(today)
@@ -42,6 +40,27 @@ export default async function DashboardPage() {
       return Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
     })
 
+  const { data: existingMilestones } = await supabase
+    .from('milestones').select('day_number').eq('user_id', profile.id)
+
+  const existingDays = new Set(existingMilestones?.map((m) => m.day_number) ?? [])
+  const toInsert = THRESHOLDS.filter(
+    (t) => profile.xp_total >= t.xp_required && !existingDays.has(t.day_number)
+  ).map((t) => ({
+    user_id: profile.id,
+    day_number: t.day_number,
+    xp_required: t.xp_required,
+    achieved_at: new Date().toISOString(),
+  }))
+
+  if (toInsert.length > 0) {
+    await supabase.from('milestones').insert(toInsert)
+  }
+
+  const { data: milestones } = await supabase
+    .from('milestones').select('*').eq('user_id', profile.id)
+    .order('day_number', { ascending: true })
+
   return (
     <DashboardClient
       profile={profile}
@@ -49,6 +68,7 @@ export default async function DashboardPage() {
       completedDays={completedDays}
       startDate={startDate}
       currentDay={currentDay}
+      milestones={milestones ?? []}
     />
   )
 }
