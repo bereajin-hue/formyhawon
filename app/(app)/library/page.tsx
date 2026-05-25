@@ -1,8 +1,21 @@
-export default function LibraryPage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">📚 책 라이브러리</h1>
-      <p className="text-gray-500">3단계에서 구현됩니다 — 책 추가 + Claude AI 학습 자료 생성</p>
-    </div>
-  )
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import LibraryClient from './LibraryClient'
+
+export default async function LibraryPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('profiles').select('*').eq('user_id', user.id).single()
+  if (!profile) redirect('/setup')
+
+  const { data: books } = await supabase
+    .from('books')
+    .select('*')
+    .eq('user_id', profile.id)
+    .order('created_at', { ascending: false })
+
+  return <LibraryClient initialBooks={books ?? []} profile={profile} />
 }
