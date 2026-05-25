@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import MissionCard from '@/components/gamification/MissionCard'
 import Calendar30 from '@/components/gamification/Calendar30'
 import XPBar from '@/components/gamification/XPBar'
@@ -125,6 +126,20 @@ export default function DashboardClient({ profile, dailyMission, completedDays, 
           <p className="font-bold text-lg">🎉 오늘 미션 모두 완료!</p>
           <p className="text-sm opacity-90 mt-1">훌륭해요! 내일도 이 기세로 달려봐요.</p>
         </div>
+      )}
+
+      {currentDay >= 20 && (
+        <Link href="/certificate" className="block mb-6">
+          <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-5 text-white shadow-md hover:shadow-lg transition-all hover:scale-[1.01]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-bold text-lg">🎓 수료증 보기</p>
+                <p className="text-sm opacity-90 mt-1">지금까지의 학습 성과를 확인하고 인쇄해보세요!</p>
+              </div>
+              <span className="text-3xl">→</span>
+            </div>
+          </div>
+        </Link>
       )}
 
       <div className="mb-8">

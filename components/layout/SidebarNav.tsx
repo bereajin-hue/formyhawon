@@ -21,6 +21,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
         { href: '/library', icon: '📚', label: '책 라이브러리' },
         { href: '/writing', icon: '✍️', label: '에세이' },
         { href: '/vocab', icon: '🔤', label: '어휘 학습' },
+        { href: '/certificate', icon: '🎓', label: '수료증' },
       ]
 
   return (
