@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         ]
 
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-5-20251022',
+      model: 'claude-sonnet-4-5',
       max_tokens: 1500,
       system: EXTRACT_CONCEPT_SYSTEM(grade),
       messages: [{ role: 'user', content: userContent }],
