@@ -157,3 +157,92 @@ export interface Milestone {
   parent_approved_at?: string
   reward_description?: string
 }
+
+// ─── Math Quest Types ───────────────────────────────────────────────
+
+export type MathLevel = 'easy' | 'medium' | 'hard' | 'synthesis'
+export type MathSessionStatus = 'not_started' | 'in_progress' | 'completed'
+export type MathArea = 'number' | 'algebra' | 'geometry' | 'statistics' | 'sequences' | 'transformation'
+
+export interface MathConceptSummary {
+  concept_name: string
+  formulas: string[]
+  explanation: string
+  worked_example: {
+    problem: string
+    steps: string[]
+    answer: string
+  }
+  common_mistakes: string[]
+}
+
+export interface MathSession {
+  id: string
+  student_id: string
+  day_number: number
+  topic_title: string
+  concept_image_url: string | null
+  concept_summary: MathConceptSummary | null
+  status: MathSessionStatus
+  xp_earned: number
+  date: string
+  started_at: string | null
+  completed_at: string | null
+  created_at: string
+}
+
+export interface MathProblem {
+  id: string
+  session_id: string
+  student_id: string
+  level: MathLevel
+  problem_number: number
+  is_retry: boolean
+  problem_text: string
+  correct_answer: string
+  answer_image_url: string | null
+  is_correct: boolean | null
+  ai_feedback: string | null
+  ai_score: number | null
+  created_at: string
+}
+
+export interface MathReviewItem {
+  id: string
+  student_id: string
+  problem_id: string
+  scheduled_date: string
+  completed: boolean
+  completed_at: string | null
+  created_at: string
+  problem?: MathProblem
+}
+
+export interface MathDailyReport {
+  id: string
+  student_id: string
+  date: string
+  day_number: number
+  total_problems: number
+  correct_count: number
+  time_minutes: number
+  weak_areas: string[]
+  ai_report: string | null
+  parent_viewed: boolean
+  created_at: string
+}
+
+export interface GeneratedMathProblem {
+  problem_text: string
+  correct_answer: string
+  hint: string
+}
+
+export interface MathGradeResult {
+  is_correct: boolean
+  score: number
+  method_correct: boolean
+  feedback: string
+  error_location: string | null
+  correct_working: string | null
+}

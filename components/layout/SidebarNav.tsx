@@ -25,6 +25,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
         { href: '/writing', icon: '✍️', label: t(T.nav.essay) },
         { href: '/vocab', icon: '🔤', label: t(T.nav.vocab) },
         { href: '/certificate', icon: '🎓', label: t(T.nav.certificate) },
+        { href: '/math', icon: '🔢', label: 'Math Quest' },
       ]
 
   return (
