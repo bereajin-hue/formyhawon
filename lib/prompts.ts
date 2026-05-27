@@ -4,11 +4,35 @@ Your task is to generate a comprehensive study guide for a student.
 You MUST respond with ONLY valid JSON. No markdown, no explanation, just JSON.
 `
 
-export const bookQuestPrompt = (title: string, author: string, grade: number) => `
-Generate a complete study guide for the following book:
-- Title: "${title}"
-- Author: ${author}
-- Student grade level: Grade ${grade} (${grade === 10 ? 'IGCSE Year 10' : 'MYP Year 3'})
+export const bookQuestPrompt = (
+  title: string,
+  author: string,
+  grade: number,
+  curriculumData?: {
+    themes?: string[]
+    essay_themes?: string[]
+    difficulty?: string
+    description?: string
+  }
+) => {
+  const curriculumContext = curriculumData
+    ? `
+CURRICULUM CONTEXT (use this to ensure accuracy):
+- Key themes: ${curriculumData.themes?.join(', ') ?? 'not specified'}
+- Pre-approved essay questions: ${curriculumData.essay_themes?.join(' | ') ?? 'generate from scratch'}
+- Difficulty level: ${curriculumData.difficulty ?? 'standard'}
+- IGCSE notes: ${curriculumData.description ?? 'standard IGCSE text'}
+
+IMPORTANT: The essay_prompts in your response MUST include the pre-approved questions above
+(adapt wording slightly if needed, but keep the core question intact).
+`
+    : ''
+
+  return `
+Generate a complete IGCSE/MYP study guide for:
+- Book: "${title}" by ${author}
+- Student grade level: Grade ${grade} (${grade >= 10 ? 'IGCSE Year ' + (grade - 9) : 'MYP Year ' + (grade - 5)})
+${curriculumContext}
 
 Return ONLY this JSON structure (no other text):
 {
@@ -53,6 +77,7 @@ Requirements:
 - chapter_questions: cover all major chapters/sections
 - All content in English
 `
+}
 
 export const ESSAY_FEEDBACK_SYSTEM = `
 You are an experienced IGCSE Literature examiner providing formative feedback.
@@ -166,6 +191,59 @@ Return ONLY this JSON:
       "follow_up": "deeper follow-up question"
     }
   ]
+}
+`
+
+export const MATH_PROBLEM_SYSTEM = `
+You are an expert IGCSE/MYP Mathematics tutor following Cambridge 0580 syllabus.
+Generate problems that match the exact difficulty and skills specified.
+Return ONLY valid JSON. No markdown, no explanation.
+`
+
+export const mathProblemPrompt = (
+  grade: number,
+  topicData: {
+    unit_name: string
+    topic_name: string
+    difficulty: string
+    igcse_syllabus_ref: string
+    key_skills: string[]
+    prerequisites: string[]
+  },
+  level: 'foundation' | 'core' | 'extended',
+  count: number = 5
+) => `
+Generate ${count} IGCSE Mathematics problems for:
+- Grade: ${grade}
+- Unit: ${topicData.unit_name}
+- Topic: ${topicData.topic_name}
+- Cambridge Syllabus Reference: ${topicData.igcse_syllabus_ref}
+- Difficulty: ${level}
+- Key skills to test: ${topicData.key_skills.join(', ')}
+- Prerequisites (assume mastered): ${topicData.prerequisites.join(', ')}
+
+Problem difficulty distribution for "${level}":
+${level === 'foundation' ? '- All problems: straightforward single-step (1-2 marks each)' : ''}
+${level === 'core' ? '- 2 easy (1-2 marks), 2 medium (3-4 marks), 1 hard (5+ marks)' : ''}
+${level === 'extended' ? '- 1 medium (3-4 marks), 3 hard (5-6 marks), 1 exam-style (7+ marks)' : ''}
+
+Return ONLY this JSON:
+{
+  "topic_summary": "2-3 sentence explanation of this topic for a Grade ${grade} student",
+  "key_formulas": ["formula1", "formula2"],
+  "problems": [
+    {
+      "problem_number": 1,
+      "problem_text": "Full problem statement with all necessary information",
+      "marks": 3,
+      "difficulty": "easy|medium|hard",
+      "hint": "One-line hint (optional, for foundation/core)",
+      "correct_answer": "Exact answer with units if applicable",
+      "worked_solution": "Step-by-step working",
+      "igcse_skill": "Which key skill this tests"
+    }
+  ],
+  "common_mistakes": ["mistake1", "mistake2", "mistake3"]
 }
 `
 

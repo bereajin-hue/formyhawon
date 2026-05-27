@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { CheckCircle, BookOpen, Clock, RefreshCw, ChevronRight, Flame, Calculator } from 'lucide-react'
 import type { Profile, MathSession } from '@/types'
 import type { Topic } from '@/lib/math/topics'
+import MathTopicList, { type MathTopic } from '@/components/curriculum/MathTopicList'
 
 interface Props {
   profile: Profile
@@ -33,6 +35,9 @@ const AREA_DOT: Record<string, string> = {
 }
 
 export default function MathDashboardClient({ profile, topics, sessionMap, currentDay, completedDays, reviewCount }: Props) {
+  const [tab, setTab] = useState<'dashboard' | 'curriculum'>('dashboard')
+  const [selectedTopic, setSelectedTopic] = useState<MathTopic | null>(null)
+
   const todayTopic = topics.find(t => t.day === currentDay)
   const todaySession = sessionMap[currentDay] ?? null
 
@@ -77,93 +82,149 @@ export default function MathDashboardClient({ profile, topics, sessionMap, curre
         </div>
       </div>
 
-      {/* 오늘의 미션 카드 */}
-      {todayTopic && (
-        <div className={`rounded-2xl border p-6 mb-6 ${AREA_COLORS[todayTopic.area] ?? 'bg-gray-50 border-gray-200'}`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">오늘의 미션</p>
-              <p className="text-sm text-gray-500">Day {currentDay}</p>
-              <h2 className="text-xl font-bold text-gray-900 mt-1">{todayTopic.title}</h2>
-              <div className="flex items-center gap-2 mt-2">
-                <span className={`w-2 h-2 rounded-full ${AREA_DOT[todayTopic.area] ?? 'bg-gray-400'}`} />
-                <span className="text-sm text-gray-500">{todayTopic.area}</span>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-400">획득 가능 XP</p>
-              <p className="text-2xl font-bold text-indigo-600">+50~</p>
-            </div>
-          </div>
-          <Link
-            href={getSessionHref()}
-            className={`mt-4 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition
-              ${todaySession?.status === 'completed'
-                ? 'bg-green-500 text-white cursor-default'
-                : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
-          >
-            {todaySession?.status === 'completed' ? (
-              <><CheckCircle className="w-5 h-5" />{getSessionLabel()}</>
-            ) : (
-              <><BookOpen className="w-5 h-5" />{getSessionLabel()}<ChevronRight className="w-4 h-4" /></>
-            )}
-          </Link>
-        </div>
-      )}
-
-      {/* 내비게이션 링크 */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <Link href="/math/review" className="bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-sm transition text-center">
-          <RefreshCw className="w-5 h-5 text-indigo-500 mx-auto mb-1" />
-          <p className="text-sm font-medium text-gray-700">복습</p>
-          {reviewCount > 0 && <p className="text-xs text-indigo-600 font-semibold">{reviewCount}개 대기</p>}
-        </Link>
-        <Link href="/math/progress" className="bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-sm transition text-center">
-          <Clock className="w-5 h-5 text-indigo-500 mx-auto mb-1" />
-          <p className="text-sm font-medium text-gray-700">진행률</p>
-          <p className="text-xs text-gray-400">{completedDays.length}/30일</p>
-        </Link>
-        <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-          <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-1">
-            <span className="text-xs">⭐</span>
-          </div>
-          <p className="text-sm font-medium text-gray-700">XP</p>
-          <p className="text-xs text-yellow-600 font-semibold">{totalXp.toLocaleString()}</p>
-        </div>
+      {/* 탭: 30일 플랜 / 전체 커리큘럼 */}
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
+        <button
+          onClick={() => setTab('dashboard')}
+          className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all
+            ${tab === 'dashboard' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          📅 30일 플랜
+        </button>
+        <button
+          onClick={() => setTab('curriculum')}
+          className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all
+            ${tab === 'curriculum' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          📖 전체 커리큘럼
+        </button>
       </div>
 
-      {/* 30일 달력 그리드 */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-        <h2 className="font-bold text-gray-900 mb-4">30일 학습 달력</h2>
-        <div className="grid grid-cols-6 gap-2">
-          {topics.map((topic) => {
-            const isCompleted = completedDays.includes(topic.day)
-            const isToday = topic.day === currentDay
-            const isFuture = topic.day > currentDay
-            return (
+      {tab === 'dashboard' ? (
+        <>
+          {/* 오늘의 미션 카드 */}
+          {todayTopic && (
+            <div className={`rounded-2xl border p-6 mb-6 ${AREA_COLORS[todayTopic.area] ?? 'bg-gray-50 border-gray-200'}`}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">오늘의 미션</p>
+                  <p className="text-sm text-gray-500">Day {currentDay}</p>
+                  <h2 className="text-xl font-bold text-gray-900 mt-1">{todayTopic.title}</h2>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className={`w-2 h-2 rounded-full ${AREA_DOT[todayTopic.area] ?? 'bg-gray-400'}`} />
+                    <span className="text-sm text-gray-500">{todayTopic.area}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-400">획득 가능 XP</p>
+                  <p className="text-2xl font-bold text-indigo-600">+50~</p>
+                </div>
+              </div>
               <Link
-                key={topic.day}
-                href={isFuture ? '#' : `/math/session/${topic.day}`}
-                className={`aspect-square rounded-xl flex flex-col items-center justify-center text-xs font-semibold border transition
-                  ${isCompleted ? 'bg-green-50 border-green-200 text-green-700' :
-                    isToday ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' :
-                    isFuture ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-default' :
-                    'bg-orange-50 border-orange-100 text-orange-600 hover:border-orange-300'
+                href={getSessionHref()}
+                className={`mt-4 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition
+                  ${todaySession?.status === 'completed'
+                    ? 'bg-green-500 text-white cursor-default'
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
                   }`}
               >
-                <span className="text-base">{isCompleted ? '✓' : topic.day}</span>
-                {isToday && <span className="text-[10px] opacity-75">오늘</span>}
+                {todaySession?.status === 'completed' ? (
+                  <><CheckCircle className="w-5 h-5" />{getSessionLabel()}</>
+                ) : (
+                  <><BookOpen className="w-5 h-5" />{getSessionLabel()}<ChevronRight className="w-4 h-4" /></>
+                )}
               </Link>
-            )
-          })}
+            </div>
+          )}
+
+          {/* 내비게이션 링크 */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <Link href="/math/review" className="bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-sm transition text-center">
+              <RefreshCw className="w-5 h-5 text-indigo-500 mx-auto mb-1" />
+              <p className="text-sm font-medium text-gray-700">복습</p>
+              {reviewCount > 0 && <p className="text-xs text-indigo-600 font-semibold">{reviewCount}개 대기</p>}
+            </Link>
+            <Link href="/math/progress" className="bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-sm transition text-center">
+              <Clock className="w-5 h-5 text-indigo-500 mx-auto mb-1" />
+              <p className="text-sm font-medium text-gray-700">진행률</p>
+              <p className="text-xs text-gray-400">{completedDays.length}/30일</p>
+            </Link>
+            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+              <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                <span className="text-xs">⭐</span>
+              </div>
+              <p className="text-sm font-medium text-gray-700">XP</p>
+              <p className="text-xs text-yellow-600 font-semibold">{totalXp.toLocaleString()}</p>
+            </div>
+          </div>
+
+          {/* 30일 달력 그리드 */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <h2 className="font-bold text-gray-900 mb-4">30일 학습 달력</h2>
+            <div className="grid grid-cols-6 gap-2">
+              {topics.map((topic) => {
+                const isCompleted = completedDays.includes(topic.day)
+                const isToday = topic.day === currentDay
+                const isFuture = topic.day > currentDay
+                return (
+                  <Link
+                    key={topic.day}
+                    href={isFuture ? '#' : `/math/session/${topic.day}`}
+                    className={`aspect-square rounded-xl flex flex-col items-center justify-center text-xs font-semibold border transition
+                      ${isCompleted ? 'bg-green-50 border-green-200 text-green-700' :
+                        isToday ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' :
+                        isFuture ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-default' :
+                        'bg-orange-50 border-orange-100 text-orange-600 hover:border-orange-300'
+                      }`}
+                  >
+                    <span className="text-base">{isCompleted ? '✓' : topic.day}</span>
+                    {isToday && <span className="text-[10px] opacity-75">오늘</span>}
+                  </Link>
+                )
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-4 text-xs text-gray-400">
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-green-100 border border-green-200 rounded" />완료</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-indigo-600 rounded" />오늘</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-orange-50 border border-orange-100 rounded" />미완료</div>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* 커리큘럼 탭 */
+        <div>
+          {selectedTopic ? (
+            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+              <button
+                onClick={() => setSelectedTopic(null)}
+                className="text-sm text-indigo-600 hover:underline mb-4 flex items-center gap-1"
+              >
+                ← 목록으로
+              </button>
+              <h2 className="text-lg font-bold text-gray-900 mb-1">{selectedTopic.topic_name}</h2>
+              <p className="text-sm text-gray-500 mb-4">{selectedTopic.unit_name} · {selectedTopic.igcse_syllabus_ref}</p>
+              {selectedTopic.key_skills.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">핵심 학습 기술</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTopic.key_skills.map(skill => (
+                      <span key={skill} className="text-sm px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <p className="text-sm text-gray-400 mt-4">AI 문제 생성 기능은 곧 연결될 예정입니다.</p>
+            </div>
+          ) : (
+            <MathTopicList
+              grade={profile.grade ?? 10}
+              onSelectTopic={setSelectedTopic}
+            />
+          )}
         </div>
-        <div className="flex items-center gap-4 mt-4 text-xs text-gray-400">
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-green-100 border border-green-200 rounded" />완료</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-indigo-600 rounded" />오늘</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-orange-50 border border-orange-100 rounded" />미완료</div>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
