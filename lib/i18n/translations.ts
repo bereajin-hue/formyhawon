@@ -70,6 +70,7 @@ export const T = {
     autoHint: {
       vocab: ['어휘 세션 완료 시 자동 획득', 'Auto-awarded on vocab session'] as P,
       essay: ['에세이 첨삭 수령 시 자동 획득', 'Auto-awarded on essay feedback'] as P,
+      reading: ['책 등록 후 챕터 질문 탭 방문 시 자동 획득', 'Auto-awarded when visiting chapter questions'] as P,
     },
     titles: {
       vocab: ['어휘 세션 완료 (EN 단어 + 문장 쓰기)', 'Vocabulary Session (EN words + sentences)'] as P,

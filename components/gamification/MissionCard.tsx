@@ -28,8 +28,8 @@ const DONE_COLORS: Record<string, string> = {
   essay: 'border-purple-300 bg-purple-100',
 }
 
-// vocab과 essay는 실제 활동 완료 시 자동 처리됨
-const AUTO_TYPES = new Set(['vocab', 'essay'])
+// vocab, essay, reading은 실제 활동 완료 시 자동 처리됨
+const AUTO_TYPES = new Set(['vocab', 'essay', 'reading'])
 
 export default function MissionCard({ mission, onComplete }: MissionCardProps) {
   const [loading, setLoading] = useState(false)

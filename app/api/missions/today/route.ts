@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
   // vocab/essay는 실제 활동에서 자동 완료 처리됨 — 수동 완료 차단
   const targetMission = dm.missions.find((m: { id: string; type: string }) => m.id === missionId)
-  if (targetMission?.type === 'vocab' || targetMission?.type === 'essay') {
+  if (['vocab', 'essay', 'reading'].includes(targetMission?.type)) {
     return NextResponse.json({ error: 'This mission is auto-completed by activity' }, { status: 400 })
   }
 

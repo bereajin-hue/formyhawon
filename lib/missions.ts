@@ -10,7 +10,7 @@ const DEFAULT_MISSIONS = [
 export async function autoCompleteMission(
   supabase: SupabaseClient,
   profileId: string,
-  type: 'vocab' | 'essay',
+  type: 'vocab' | 'essay' | 'reading',
 ): Promise<{ xpEarned: number }> {
   const today = new Date().toISOString().split('T')[0]
 

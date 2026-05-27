@@ -19,6 +19,7 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
   const [content, setContent] = useState<BookQuestContent | null>(initialContent)
   const [loading, setLoading] = useState(!initialContent)
   const [error, setError] = useState('')
+  const [readingXpPopup, setReadingXpPopup] = useState(false)
 
   const TABS = [
     { id: 'background', label: t(T.bookDetail.background) },
@@ -67,6 +68,18 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
     setLoading(false)
   }
 
+  async function handleTabChange(tabId: string) {
+    setActiveTab(tabId)
+    if (tabId === 'chapters') {
+      const res = await fetch('/api/missions/reading-complete', { method: 'POST' })
+      const data = await res.json()
+      if (data.xpEarned > 0) {
+        setReadingXpPopup(true)
+        setTimeout(() => setReadingXpPopup(false), 2500)
+      }
+    }
+  }
+
   function handleStartEssay(question: string) {
     const params = new URLSearchParams({ bookId: book.id, prompt: question })
     router.push(`/writing/new?${params.toString()}`)
@@ -106,13 +119,19 @@ export default function BookDetailClient({ book, profile, initialContent }: Prop
         </div>
       )}
 
+      {readingXpPopup && (
+        <div className="fixed top-8 right-8 z-50 bg-green-500 text-white px-5 py-3 rounded-2xl shadow-lg animate-bounce font-bold text-lg">
+          +10 XP! 📖 {lang === 'ko' ? '독서 미션 완료!' : 'Reading mission done!'}
+        </div>
+      )}
+
       {content && !loading && (
         <>
           <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl overflow-x-auto">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-all
                   ${activeTab === tab.id ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
