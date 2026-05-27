@@ -4,6 +4,7 @@ export interface Topic {
   area: 'number' | 'algebra' | 'geometry' | 'statistics' | 'sequences' | 'transformation'
 }
 
+// Grade 8 — MYP Year 3
 export const YEAR8_TOPICS: Topic[] = [
   { day: 1,  title: 'Place value & rounding',              area: 'number' },
   { day: 2,  title: 'Decimal to Percentage',               area: 'number' },
@@ -25,9 +26,9 @@ export const YEAR8_TOPICS: Topic[] = [
   { day: 18, title: 'Probability scale',                   area: 'statistics' },
   { day: 19, title: 'Two-way tables & bar charts',         area: 'statistics' },
   { day: 20, title: 'Representing & interpreting data',    area: 'statistics' },
-  { day: 21, title: 'Functions y = mx + c',                area: 'statistics' },
-  { day: 22, title: 'Graphs of functions',                 area: 'statistics' },
-  { day: 23, title: 'Lines parallel to x / y axis',       area: 'statistics' },
+  { day: 21, title: 'Functions y = mx + c',                area: 'algebra' },
+  { day: 22, title: 'Graphs of functions',                 area: 'algebra' },
+  { day: 23, title: 'Lines parallel to x / y axis',       area: 'algebra' },
   { day: 24, title: 'Translation',                         area: 'transformation' },
   { day: 25, title: 'Reflection',                          area: 'transformation' },
   { day: 26, title: 'Rotation',                            area: 'transformation' },
@@ -37,6 +38,41 @@ export const YEAR8_TOPICS: Topic[] = [
   { day: 30, title: 'Congruent shapes + Synthesis',        area: 'geometry' },
 ]
 
+// Grade 9 — MYP Year 4 / Pre-IGCSE
+export const YEAR9_TOPICS: Topic[] = [
+  { day: 1,  title: 'Powers, roots & standard form',       area: 'number' },
+  { day: 2,  title: 'Percentages & reverse percentage',    area: 'number' },
+  { day: 3,  title: 'Fractions, decimals & rounding',      area: 'number' },
+  { day: 4,  title: 'Direct & inverse proportion',         area: 'number' },
+  { day: 5,  title: 'Expanding double brackets',           area: 'algebra' },
+  { day: 6,  title: 'Factorising expressions',             area: 'algebra' },
+  { day: 7,  title: 'Linear equations & word problems',    area: 'algebra' },
+  { day: 8,  title: 'Simultaneous equations (intro)',      area: 'algebra' },
+  { day: 9,  title: 'Changing the subject of a formula',   area: 'algebra' },
+  { day: 10, title: 'Inequalities & number line',          area: 'algebra' },
+  { day: 11, title: 'Sequences: nth term',                 area: 'sequences' },
+  { day: 12, title: 'Geometric sequences',                 area: 'sequences' },
+  { day: 13, title: 'Gradient & y = mx + c',               area: 'algebra' },
+  { day: 14, title: 'Plotting & reading graphs',           area: 'algebra' },
+  { day: 15, title: 'Distance–time & speed–time graphs',   area: 'algebra' },
+  { day: 16, title: 'Pythagoras theorem',                  area: 'geometry' },
+  { day: 17, title: 'Trigonometry: SOH CAH TOA',           area: 'geometry' },
+  { day: 18, title: 'Angle properties & parallel lines',   area: 'geometry' },
+  { day: 19, title: 'Area & perimeter of 2D shapes',       area: 'geometry' },
+  { day: 20, title: 'Volume & surface area of 3D shapes',  area: 'geometry' },
+  { day: 21, title: 'Transformations review',              area: 'transformation' },
+  { day: 22, title: 'Similarity & congruence',             area: 'geometry' },
+  { day: 23, title: 'Probability: single events',          area: 'statistics' },
+  { day: 24, title: 'Probability: combined events',        area: 'statistics' },
+  { day: 25, title: 'Mean, median, mode, range',           area: 'statistics' },
+  { day: 26, title: 'Frequency tables & histograms',       area: 'statistics' },
+  { day: 27, title: 'Scatter diagrams & correlation',      area: 'statistics' },
+  { day: 28, title: 'Circle: area, circumference, arcs',   area: 'geometry' },
+  { day: 29, title: 'Sets & Venn diagrams (intro)',        area: 'statistics' },
+  { day: 30, title: 'Pre-IGCSE Synthesis Review',          area: 'algebra' },
+]
+
+// Grade 10 — IGCSE Year 1
 export const YEAR10_TOPICS: Topic[] = [
   { day: 1,  title: '2.1 Substitution',                          area: 'algebra' },
   { day: 2,  title: '2.2 Two pairs of brackets',                 area: 'algebra' },
@@ -70,8 +106,45 @@ export const YEAR10_TOPICS: Topic[] = [
   { day: 30, title: 'Chapter 2 & 6 Synthesis Review',           area: 'algebra' },
 ]
 
+// Grade 11 — IGCSE Year 2 (Exam Year)
+export const YEAR11_TOPICS: Topic[] = [
+  { day: 1,  title: '3.1 Sets & Venn diagrams',                  area: 'statistics' },
+  { day: 2,  title: '3.2 Probability: single events',            area: 'statistics' },
+  { day: 3,  title: '3.3 Probability: combined events',          area: 'statistics' },
+  { day: 4,  title: '3.4 Tree diagrams & conditional prob.',     area: 'statistics' },
+  { day: 5,  title: '4.1 Mean, median, mode & range',            area: 'statistics' },
+  { day: 6,  title: '4.2 Frequency tables & grouped data',       area: 'statistics' },
+  { day: 7,  title: '4.3 Cumulative frequency & box plots',      area: 'statistics' },
+  { day: 8,  title: '4.4 Histograms with unequal intervals',     area: 'statistics' },
+  { day: 9,  title: '4.5 Scatter diagrams & lines of best fit',  area: 'statistics' },
+  { day: 10, title: '5.1 Vectors — notation & column form',      area: 'geometry' },
+  { day: 11, title: '5.2 Vector addition & scalar multiplication',area: 'geometry' },
+  { day: 12, title: '5.3 Vector geometry & proof',               area: 'geometry' },
+  { day: 13, title: '8.1 Circle theorems I',                     area: 'geometry' },
+  { day: 14, title: '8.2 Circle theorems II',                    area: 'geometry' },
+  { day: 15, title: '8.3 Tangents & angle in semicircle',        area: 'geometry' },
+  { day: 16, title: '9.1 Sine rule',                             area: 'geometry' },
+  { day: 17, title: '9.2 Cosine rule',                           area: 'geometry' },
+  { day: 18, title: '9.3 Area of triangle = ½ab sin C',         area: 'geometry' },
+  { day: 19, title: '9.4 3D trigonometry problems',              area: 'geometry' },
+  { day: 20, title: '10.1 Similar shapes — area & volume',      area: 'geometry' },
+  { day: 21, title: '10.2 Volume of cone, sphere, pyramid',      area: 'geometry' },
+  { day: 22, title: '11.1 Differentiation — gradient of curve',  area: 'algebra' },
+  { day: 23, title: '11.2 Turning points (max/min)',             area: 'algebra' },
+  { day: 24, title: '11.3 Kinematics (v = ds/dt)',               area: 'algebra' },
+  { day: 25, title: '12.1 Matrices — operations',                area: 'algebra' },
+  { day: 26, title: '12.2 Determinant & inverse matrix',         area: 'algebra' },
+  { day: 27, title: '12.3 Solving equations with matrices',      area: 'algebra' },
+  { day: 28, title: 'IGCSE Paper 1 style — mixed topics',       area: 'number' },
+  { day: 29, title: 'IGCSE Paper 2 style — extended problems',  area: 'algebra' },
+  { day: 30, title: 'Full IGCSE Mock Review',                    area: 'algebra' },
+]
+
 export function getTopics(grade: 8 | 9 | 10 | 11): Topic[] {
-  return grade <= 9 ? YEAR8_TOPICS : YEAR10_TOPICS
+  if (grade === 8)  return YEAR8_TOPICS
+  if (grade === 9)  return YEAR9_TOPICS
+  if (grade === 10) return YEAR10_TOPICS
+  return YEAR11_TOPICS
 }
 
 export function getTopic(grade: 8 | 9 | 10 | 11, day: number): Topic | undefined {
