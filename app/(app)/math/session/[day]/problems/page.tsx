@@ -19,7 +19,7 @@ export default async function ProblemsPage({ params }: Props) {
     .from('profiles').select('*').eq('user_id', user.id).single()
   if (!profile) redirect('/setup')
 
-  const grade = (profile.grade === 10 ? 10 : 8) as 8 | 10
+  const grade = ([8, 9, 10, 11].includes(profile.grade ?? 10) ? (profile.grade ?? 10) : 10) as 8 | 9 | 10 | 11
   const topic = getTopics(grade).find((t) => t.day === dayNumber)
   if (!topic) redirect('/dashboard')
 
