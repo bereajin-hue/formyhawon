@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Camera, Loader2, ChevronRight, Lightbulb, CheckCircle, XCircle, RefreshCw, Trophy } from 'lucide-react'
 import type { Profile, MathProblem, MathSession, MathGradeResult, MathLevel } from '@/types'
 import type { Topic } from '@/lib/math/topics'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 
 interface Props {
   profile: Profile
@@ -36,6 +38,7 @@ const XP_PER_CORRECT: Record<MathLevel, number> = {
 
 export default function ProblemsClient({ profile, dayNumber, topic, session, existingProblems }: Props) {
   const router = useRouter()
+  const { t, lang } = useT()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [currentLevel, setCurrentLevel] = useState<MathLevel>(() => {
@@ -53,15 +56,12 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [grading, setGrading] = useState(false)
   const [gradeResult, setGradeResult] = useState<MathGradeResult | null>(null)
-  const [retryProblems, setRetryProblems] = useState<{ problem_text: string; correct_answer: string; hint: string }[]>([])
   const [generating, setGenerating] = useState(false)
   const [sessionComplete, setSessionComplete] = useState(session.status === 'completed')
   const [xpEarned, setXpEarned] = useState(session.xp_earned)
   const [error, setError] = useState('')
 
   const levelProblems = problems.filter(p => p.level === currentLevel && !p.is_retry)
-  const allAnswered = levelProblems.every(p => p.is_correct !== null)
-  const correctCount = levelProblems.filter(p => p.is_correct === true).length
 
   useEffect(() => {
     if (levelProblems.length === 0 && !generating) {
@@ -75,29 +75,17 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
     setGenerating(true)
     setError('')
     try {
-      const conceptSummary = session.concept_summary
-        ? JSON.stringify(session.concept_summary)
-        : topic.title
-
+      const conceptSummary = session.concept_summary ? JSON.stringify(session.concept_summary) : topic.title
       const res = await fetch('/api/math/generate-problems', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: session.id,
-          level,
-          grade: profile.grade,
-          topicTitle: topic.title,
-          conceptSummary,
-        }),
+        body: JSON.stringify({ sessionId: session.id, level, grade: profile.grade, topicTitle: topic.title, conceptSummary }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-
       setProblems(prev => [...prev, ...data.problems])
       const hintMap: Record<string, string> = {}
-      data.problems.forEach((p: MathProblem, i: number) => {
-        hintMap[p.id] = data.hints[i] ?? ''
-      })
+      data.problems.forEach((p: MathProblem, i: number) => { hintMap[p.id] = data.hints[i] ?? '' })
       setHints(prev => ({ ...prev, ...hintMap }))
       setCurrentProblemIdx(0)
       setGradeResult(null)
@@ -105,7 +93,7 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
       setImageFile(null)
       setShowHint(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '문제 생성 오류')
+      setError(err instanceof Error ? err.message : 'Error')
     } finally {
       setGenerating(false)
     }
@@ -128,29 +116,15 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
       const res = await fetch('/api/math/grade-answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          problemId: currentProblem.id,
-          answerImageBase64: base64,
-          problemText: currentProblem.problem_text,
-          correctAnswer: currentProblem.correct_answer,
-          grade: profile.grade,
-        }),
+        body: JSON.stringify({ problemId: currentProblem.id, answerImageBase64: base64, problemText: currentProblem.problem_text, correctAnswer: currentProblem.correct_answer, grade: profile.grade }),
       })
       const result: MathGradeResult = await res.json()
       if (!res.ok) throw new Error('채점 실패')
-
       setGradeResult(result)
-      setProblems(prev => prev.map(p =>
-        p.id === currentProblem.id
-          ? { ...p, is_correct: result.is_correct, ai_feedback: result.feedback, ai_score: result.score }
-          : p
-      ))
-
-      if (result.is_correct) {
-        setXpEarned(prev => prev + XP_PER_CORRECT[currentLevel])
-      }
+      setProblems(prev => prev.map(p => p.id === currentProblem.id ? { ...p, is_correct: result.is_correct, ai_feedback: result.feedback, ai_score: result.score } : p))
+      if (result.is_correct) setXpEarned(prev => prev + XP_PER_CORRECT[currentLevel])
     } catch (err) {
-      setError(err instanceof Error ? err.message : '채점 중 오류')
+      setError(err instanceof Error ? err.message : 'Error')
     } finally {
       setGrading(false)
     }
@@ -172,14 +146,8 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
   async function checkMasteryGate() {
     const updatedProblems = problems.filter(p => p.level === currentLevel && !p.is_retry)
     const correct = updatedProblems.filter(p => p.is_correct === true).length
-    const threshold = MASTERY_THRESHOLD[currentLevel]
-
-    if (currentLevel === 'synthesis') {
-      await completeSession()
-      return
-    }
-
-    if (correct >= threshold) {
+    if (currentLevel === 'synthesis') { await completeSession(); return }
+    if (correct >= MASTERY_THRESHOLD[currentLevel]) {
       const nextLevel = LEVELS[LEVELS.indexOf(currentLevel) + 1]
       setCurrentLevel(nextLevel)
       setCurrentProblemIdx(0)
@@ -195,22 +163,14 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
     const wrongProblems = problems.filter(p => p.level === currentLevel && p.is_correct === false && !p.is_retry)
     const firstWrong = wrongProblems[0]
     if (!firstWrong) return
-
     setGenerating(true)
     try {
       const res = await fetch('/api/math/generate-retry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          problemText: firstWrong.problem_text,
-          errorLocation: firstWrong.ai_feedback ?? null,
-          topicTitle: topic.title,
-          grade: profile.grade,
-          level: currentLevel,
-        }),
+        body: JSON.stringify({ problemText: firstWrong.problem_text, errorLocation: firstWrong.ai_feedback ?? null, topicTitle: topic.title, grade: profile.grade, level: currentLevel }),
       })
-      const data = await res.json()
-      setRetryProblems(data.retry_problems ?? [])
+      await res.json()
     } finally {
       setGenerating(false)
     }
@@ -220,36 +180,16 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
     const allProblems = problems.filter(p => !p.is_retry)
     const totalCorrect = allProblems.filter(p => p.is_correct).length
     const finalXp = xpEarned + 50
-
     await fetch('/api/math/sessions', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: session.id,
-        updates: {
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          xp_earned: finalXp,
-        },
-      }),
+      body: JSON.stringify({ sessionId: session.id, updates: { status: 'completed', completed_at: new Date().toISOString(), xp_earned: finalXp } }),
     })
-
     await fetch('/api/math/daily-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        studentName: profile.name,
-        grade: profile.grade,
-        topicTitle: topic.title,
-        correct: totalCorrect,
-        total: allProblems.length,
-        minutes: Math.round((Date.now() - new Date(session.started_at ?? Date.now()).getTime()) / 60000),
-        weakAreas: [],
-        studentId: profile.id,
-        dayNumber,
-      }),
+      body: JSON.stringify({ studentName: profile.name, grade: profile.grade, topicTitle: topic.title, correct: totalCorrect, total: allProblems.length, minutes: Math.round((Date.now() - new Date(session.started_at ?? Date.now()).getTime()) / 60000), weakAreas: [], studentId: profile.id, dayNumber }),
     })
-
     setXpEarned(finalXp)
     setSessionComplete(true)
   }
@@ -260,17 +200,14 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
         <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <Trophy className="w-12 h-12 text-yellow-500" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Day {dayNumber} 완료!</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{T.math.problems.dayComplete(dayNumber, lang)}</h1>
         <p className="text-gray-500 mb-4">{topic.title}</p>
         <div className="bg-indigo-50 rounded-2xl px-6 py-4 mb-8 inline-block">
-          <p className="text-sm text-indigo-600 font-medium">획득 XP</p>
+          <p className="text-sm text-indigo-600 font-medium">{t(T.math.xpEarned)}</p>
           <p className="text-4xl font-bold text-indigo-700">+{xpEarned}</p>
         </div>
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition"
-        >
-          대시보드로 돌아가기
+        <button onClick={() => router.push('/dashboard')} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition">
+          {t(T.math.backToDashboard)}
         </button>
       </div>
     )
@@ -280,7 +217,7 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
-        <p className="text-gray-600 font-medium">AI가 {LEVEL_LABELS[currentLevel]} 문제를 생성 중...</p>
+        <p className="text-gray-600 font-medium">{T.math.problems.generatingProblems(LEVEL_LABELS[currentLevel], lang)}</p>
       </div>
     )
   }
@@ -294,11 +231,7 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
           const isActive = level === currentLevel
           return (
             <div key={level} className="flex items-center gap-2">
-              <div className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                isActive ? 'bg-indigo-600 text-white shadow-sm' :
-                isDone ? 'bg-green-100 text-green-700' :
-                'bg-gray-100 text-gray-400'
-              }`}>
+              <div className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isActive ? 'bg-indigo-600 text-white shadow-sm' : isDone ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
                 {isDone ? '✓ ' : ''}{LEVEL_LABELS[level]}
               </div>
               {idx < LEVELS.length - 1 && <ChevronRight className="w-3 h-3 text-gray-300" />}
@@ -307,106 +240,75 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
         })}
       </div>
 
-      {/* 현재 문제 */}
       {currentProblem && (
         <>
-          {/* 진행 바 */}
           <div className="flex items-center gap-3 mb-4">
-            <p className="text-sm text-gray-500 whitespace-nowrap">문제 {currentProblemIdx + 1} / {levelProblems.length}</p>
+            <p className="text-sm text-gray-500 whitespace-nowrap">
+              {T.math.problems.problemOf(currentProblemIdx + 1, levelProblems.length, lang)}
+            </p>
             <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-indigo-500 rounded-full transition-all"
-                style={{ width: `${((currentProblemIdx + 1) / levelProblems.length) * 100}%` }}
-              />
+              <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${((currentProblemIdx + 1) / levelProblems.length) * 100}%` }} />
             </div>
             <span className="text-xs text-indigo-600 font-semibold">+{XP_PER_CORRECT[currentLevel]} XP</span>
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-4">
-            <p className="text-lg font-semibold text-gray-900 leading-relaxed mb-4">
-              {currentProblem.problem_text}
-            </p>
+            <p className="text-lg font-semibold text-gray-900 leading-relaxed mb-4">{currentProblem.problem_text}</p>
 
-            {/* 힌트 */}
-            <button
-              onClick={() => setShowHint(!showHint)}
-              className="flex items-center gap-1.5 text-sm text-amber-600 hover:text-amber-700 mb-4"
-            >
+            <button onClick={() => setShowHint(!showHint)} className="flex items-center gap-1.5 text-sm text-amber-600 hover:text-amber-700 mb-4">
               <Lightbulb className="w-4 h-4" />
-              {showHint ? '힌트 숨기기' : '힌트 보기'}
+              {showHint ? t(T.math.problems.hideHint) : t(T.math.problems.showHint)}
             </button>
             {showHint && hints[currentProblem.id] && (
-              <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-4 text-sm text-amber-800">
-                {hints[currentProblem.id]}
-              </div>
+              <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-4 text-sm text-amber-800">{hints[currentProblem.id]}</div>
             )}
 
-            {/* 답안 업로드 */}
             {gradeResult === null && (
               <div>
                 {!preview ? (
-                  <div
-                    onClick={() => fileRef.current?.click()}
-                    className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center gap-3 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition"
-                  >
+                  <div onClick={() => fileRef.current?.click()} className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center gap-3 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition">
                     <Camera className="w-8 h-8 text-gray-400" />
-                    <p className="text-sm text-gray-500">풀이 사진 촬영 또는 업로드</p>
+                    <p className="text-sm text-gray-500">{t(T.math.problems.uploadAnswer)}</p>
                     <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
                   </div>
                 ) : (
                   <div className="relative mb-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={preview} alt="답안 미리보기" className="w-full rounded-xl max-h-60 object-contain" />
-                    <button
-                      onClick={() => { setPreview(null); setImageFile(null) }}
-                      className="absolute top-2 right-2 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70"
-                    >✕</button>
+                    <img src={preview} alt="answer" className="w-full rounded-xl max-h-60 object-contain" />
+                    <button onClick={() => { setPreview(null); setImageFile(null) }} className="absolute top-2 right-2 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70">✕</button>
                   </div>
                 )}
                 {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
                 {preview && (
-                  <button
-                    onClick={handleGrade}
-                    disabled={grading}
-                    className="w-full mt-3 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
-                  >
-                    {grading ? <><Loader2 className="w-4 h-4 animate-spin" />채점 중...</> : '제출하기'}
+                  <button onClick={handleGrade} disabled={grading} className="w-full mt-3 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center gap-2">
+                    {grading ? <><Loader2 className="w-4 h-4 animate-spin" />{t(T.math.problems.grading)}</> : t(T.math.problems.submit)}
                   </button>
                 )}
               </div>
             )}
 
-            {/* 채점 결과 */}
             {gradeResult && (
               <div className={`rounded-xl p-4 ${gradeResult.is_correct ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
                 <div className="flex items-center gap-2 mb-2">
-                  {gradeResult.is_correct
-                    ? <CheckCircle className="w-5 h-5 text-green-500" />
-                    : <XCircle className="w-5 h-5 text-red-500" />
-                  }
-                  <p className="font-bold text-gray-900">{gradeResult.is_correct ? '정답입니다! 🎉' : '아쉬워요 😢'}</p>
-                  <span className={`ml-auto text-sm font-semibold ${gradeResult.is_correct ? 'text-green-600' : 'text-red-500'}`}>
-                    {gradeResult.score}점
-                  </span>
+                  {gradeResult.is_correct ? <CheckCircle className="w-5 h-5 text-green-500" /> : <XCircle className="w-5 h-5 text-red-500" />}
+                  <p className="font-bold text-gray-900">{gradeResult.is_correct ? t(T.math.problems.correct) : t(T.math.problems.wrong)}</p>
+                  <span className={`ml-auto text-sm font-semibold ${gradeResult.is_correct ? 'text-green-600' : 'text-red-500'}`}>{gradeResult.score}{lang === 'ko' ? '점' : 'pts'}</span>
                 </div>
                 <p className="text-sm text-gray-700 mb-3">{gradeResult.feedback}</p>
                 {!gradeResult.is_correct && gradeResult.error_location && (
                   <div className="bg-white rounded-lg p-3 mb-3">
-                    <p className="text-xs font-semibold text-red-500 mb-1">오류 위치</p>
+                    <p className="text-xs font-semibold text-red-500 mb-1">{t(T.math.problems.errorLocation)}</p>
                     <p className="text-sm text-gray-700">{gradeResult.error_location}</p>
                   </div>
                 )}
                 {!gradeResult.is_correct && gradeResult.correct_working && (
                   <div className="bg-white rounded-lg p-3">
-                    <p className="text-xs font-semibold text-indigo-500 mb-1">올바른 풀이</p>
+                    <p className="text-xs font-semibold text-indigo-500 mb-1">{t(T.math.problems.correctWorking)}</p>
                     <p className="text-sm text-gray-700 whitespace-pre-line">{gradeResult.correct_working}</p>
                   </div>
                 )}
-                <button
-                  onClick={handleNextProblem}
-                  className="w-full mt-4 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition"
-                >
-                  {currentProblemIdx < levelProblems.length - 1 ? '다음 문제' : '결과 확인'}
+                <button onClick={handleNextProblem} className="w-full mt-4 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition">
+                  {currentProblemIdx < levelProblems.length - 1 ? t(T.math.problems.nextProblem) : t(T.math.problems.checkResult)}
                 </button>
               </div>
             )}
@@ -414,24 +316,22 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
         </>
       )}
 
-      {/* Mastery Gate 실패 - 유사문제 */}
-      {allAnswered && correctCount < MASTERY_THRESHOLD[currentLevel] && retryProblems.length > 0 && (
+      {/* Mastery Gate 실패 */}
+      {levelProblems.every(p => p.is_correct !== null) &&
+        levelProblems.filter(p => p.is_correct === true).length < MASTERY_THRESHOLD[currentLevel] && (
         <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <RefreshCw className="w-5 h-5 text-orange-500" />
             <div>
-              <p className="font-bold text-gray-900">조금 더 연습해봐요!</p>
-              <p className="text-sm text-gray-500">{correctCount}/{levelProblems.length} 정답 — 통과 기준: {MASTERY_THRESHOLD[currentLevel]}/5</p>
+              <p className="font-bold text-gray-900">{t(T.math.problems.retryTitle)}</p>
+              <p className="text-sm text-gray-500">
+                {levelProblems.filter(p => p.is_correct).length}/{levelProblems.length} — {lang === 'ko' ? '통과 기준' : 'Pass'}: {MASTERY_THRESHOLD[currentLevel]}/5
+              </p>
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-4">비슷한 문제 3개를 더 풀어봅시다.</p>
-          <button
-            onClick={() => {
-              router.push(`/math/session/${dayNumber}/problems`)
-            }}
-            className="w-full py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
-          >
-            유사문제 풀기
+          <p className="text-sm text-gray-600 mb-4">{t(T.math.problems.retryDesc)}</p>
+          <button onClick={() => router.push(`/math/session/${dayNumber}/problems`)} className="w-full py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition">
+            {t(T.math.problems.retryBtn)}
           </button>
         </div>
       )}

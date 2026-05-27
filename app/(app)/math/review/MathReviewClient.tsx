@@ -3,6 +3,8 @@
 import { useState, useRef } from 'react'
 import { Camera, Loader2, CheckCircle, XCircle, BookCheck } from 'lucide-react'
 import type { Profile, MathReviewItem, MathGradeResult } from '@/types'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 
 interface Props {
   profile: Profile
@@ -10,6 +12,7 @@ interface Props {
 }
 
 export default function MathReviewClient({ profile, reviewItems: initialItems }: Props) {
+  const { t, lang } = useT()
   const [items, setItems] = useState(initialItems)
   const [activeIdx, setActiveIdx] = useState<number | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -79,8 +82,8 @@ export default function MathReviewClient({ profile, reviewItems: initialItems }:
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <BookCheck className="w-10 h-10 text-green-500" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">오늘 복습 없음!</h2>
-        <p className="text-gray-500">오늘은 복습 없이 새 개념을 배울 차례예요!</p>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t(T.math.review.emptyTitle)}</h2>
+        <p className="text-gray-500">{t(T.math.review.emptyDesc)}</p>
       </div>
     )
   }
@@ -88,8 +91,8 @@ export default function MathReviewClient({ profile, reviewItems: initialItems }:
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">수학 복습 큐</h1>
-        <p className="text-gray-500 mt-1">오늘 복습할 문제 {items.length}개</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t(T.math.review.title)}</h1>
+        <p className="text-gray-500 mt-1">{T.math.review.subtitle(items.length, lang)}</p>
       </div>
 
       <div className="space-y-3">
@@ -101,7 +104,7 @@ export default function MathReviewClient({ profile, reviewItems: initialItems }:
                   <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
                     {item.problem?.level?.toUpperCase()}
                   </span>
-                  <p className="text-xs text-gray-400 mt-1">복습 예정: {item.scheduled_date}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t(T.math.review.scheduledFor)} {item.scheduled_date}</p>
                 </div>
               </div>
               <p className="text-gray-800 font-medium">{item.problem?.problem_text}</p>
@@ -119,7 +122,7 @@ export default function MathReviewClient({ profile, reviewItems: initialItems }:
                 }}
                 className="mt-3 text-sm text-indigo-600 font-medium hover:underline"
               >
-                {activeIdx === idx ? '접기 ▲' : '복습 풀기 ▼'}
+                {activeIdx === idx ? t(T.math.review.collapseReview) : t(T.math.review.startReview)}
               </button>
             </div>
 
@@ -133,13 +136,13 @@ export default function MathReviewClient({ profile, reviewItems: initialItems }:
                         className="border-2 border-dashed border-gray-200 rounded-xl p-6 flex flex-col items-center gap-2 cursor-pointer hover:border-indigo-300 transition"
                       >
                         <Camera className="w-6 h-6 text-gray-400" />
-                        <p className="text-sm text-gray-500">풀이 사진 업로드</p>
+                        <p className="text-sm text-gray-500">{t(T.math.review.uploadAnswer)}</p>
                         <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
                       </div>
                     ) : (
                       <div className="relative mb-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={preview} alt="답안" className="w-full rounded-xl max-h-48 object-contain" />
+                        <img src={preview} alt="answer" className="w-full rounded-xl max-h-48 object-contain" />
                         <button onClick={() => { setPreview(null); setImageFile(null) }} className="absolute top-2 right-2 w-7 h-7 bg-black/50 rounded-full text-white text-xs hover:bg-black/70">✕</button>
                       </div>
                     )}
@@ -149,7 +152,7 @@ export default function MathReviewClient({ profile, reviewItems: initialItems }:
                         disabled={grading}
                         className="w-full mt-3 py-3 bg-indigo-600 text-white rounded-xl font-semibold disabled:opacity-50 transition flex items-center justify-center gap-2"
                       >
-                        {grading ? <><Loader2 className="w-4 h-4 animate-spin" />채점 중...</> : '제출'}
+                        {grading ? <><Loader2 className="w-4 h-4 animate-spin" />{t(T.math.review.grading)}</> : t(T.math.review.submit)}
                       </button>
                     )}
                   </>
@@ -160,7 +163,7 @@ export default function MathReviewClient({ profile, reviewItems: initialItems }:
                         ? <CheckCircle className="w-5 h-5 text-green-500" />
                         : <XCircle className="w-5 h-5 text-red-500" />
                       }
-                      <p className="font-semibold">{gradeResult.is_correct ? '정답! 복습 완료 🎉' : '아쉬워요...'}</p>
+                      <p className="font-semibold">{gradeResult.is_correct ? t(T.math.review.correctDone) : t(T.math.review.wrong)}</p>
                     </div>
                     <p className="text-sm text-gray-700 mb-3">{gradeResult.feedback}</p>
                     {!gradeResult.is_correct && (
@@ -168,7 +171,7 @@ export default function MathReviewClient({ profile, reviewItems: initialItems }:
                         onClick={() => markComplete(item.id)}
                         className="w-full py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-300 transition"
                       >
-                        이해했어요 — 완료 처리
+                        {t(T.math.review.markDone)}
                       </button>
                     )}
                   </div>

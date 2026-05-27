@@ -311,4 +311,120 @@ export const T = {
     logout: ['🚪 로그아웃', '🚪 Log out'] as P,
     gradeOption: (g: number, lang: Lang) => lang === 'ko' ? `${g}학년` : `Grade ${g}`,
   },
+
+  // ──────────── Math Quest ────────────
+  math: {
+    // 공통
+    mathQuest: ['Math Quest', 'Math Quest'] as P,
+    dayOf: (day: number, lang: Lang) => lang === 'ko' ? `Day ${day} / 30` : `Day ${day} / 30`,
+    backToDashboard: ['대시보드로 돌아가기', 'Back to Dashboard'] as P,
+    xpEarned: ['획득 XP', 'XP Earned'] as P,
+
+    // 대시보드
+    dashboard: {
+      greeting: (name: string, lang: Lang) => lang === 'ko' ? `안녕하세요, ${name}님!` : `Hello, ${name}!`,
+      todayMission: ['오늘의 미션', "Today's Mission"] as P,
+      possibleXp: ['획득 가능 XP', 'Possible XP'] as P,
+      startStudy: ['학습 시작하기', 'Start Study'] as P,
+      continueStudy: ['이어하기', 'Continue'] as P,
+      completed: ['완료 ✓', 'Done ✓'] as P,
+      review: ['복습', 'Review'] as P,
+      reviewCount: (n: number, lang: Lang) => lang === 'ko' ? `복습 ${n}개` : `${n} reviews`,
+      progress: ['진행률', 'Progress'] as P,
+      calendar: ['30일 학습 달력', '30-Day Calendar'] as P,
+      calendarToday: ['오늘', 'Today'] as P,
+      calendarDone: ['완료', 'Done'] as P,
+      calendarIncomplete: ['미완료', 'Incomplete'] as P,
+      xpLabel: ['XP', 'XP'] as P,
+    },
+
+    // 세션 시작
+    session: {
+      uploadTitle: ['교재 사진 업로드', 'Upload Textbook Photo'] as P,
+      uploadDesc: ['오늘 배운 교재나 노트 사진을 찍어 업로드하세요. AI가 개념을 분석합니다.', 'Take a photo of your textbook or notes. AI will analyze the concept.'] as P,
+      cameraPrompt: ['사진을 찍거나 갤러리에서 선택', 'Take a photo or select from gallery'] as P,
+      cameraHint: ['교재, 노트, 필기 모두 가능', 'Textbooks, notes, or handwriting all work'] as P,
+      analyzing: ['AI가 개념을 분석 중...', 'AI is analyzing the concept...'] as P,
+      startAnalysis: ['개념 분석 시작', 'Start Analysis'] as P,
+      skipUpload: ['사진 없이 AI 개념 설명으로 바로 시작 →', 'Skip photo — Start with AI explanation →'] as P,
+      alreadyDone: ['Day {day} 완료!', 'Day {day} Complete!'] as P,
+    },
+
+    // 개념 설명
+    concept: {
+      pageTitle: ['개념 설명', 'Concept Explanation'] as P,
+      generate: ['AI 개념 설명 생성', 'Generate AI Explanation'] as P,
+      generateDesc: (title: string, lang: Lang) => lang === 'ko' ? `AI가 ${title} 개념을 설명해 드립니다.` : `AI will explain ${title} for you.`,
+      generating: ['AI가 분석 중...', 'AI is analyzing...'] as P,
+      generateBtn: ['개념 설명 생성', 'Generate Explanation'] as P,
+      formulas: ['핵심 공식', 'Key Formulas'] as P,
+      workedExample: ['예제 풀이', 'Worked Example'] as P,
+      problem: ['문제', 'Problem'] as P,
+      answer: ['정답', 'Answer'] as P,
+      commonMistakes: ['자주 하는 실수', 'Common Mistakes'] as P,
+      startProblems: ['문제 풀기 시작', 'Start Problems'] as P,
+      generateError: ['개념 생성에 실패했습니다.', 'Failed to generate concept.'] as P,
+    },
+
+    // 문제 풀기
+    problems: {
+      problemOf: (n: number, total: number, lang: Lang) => lang === 'ko' ? `문제 ${n} / ${total}` : `Problem ${n} / ${total}`,
+      showHint: ['힌트 보기', 'Show Hint'] as P,
+      hideHint: ['힌트 숨기기', 'Hide Hint'] as P,
+      uploadAnswer: ['풀이 사진 촬영 또는 업로드', 'Take/Upload your answer photo'] as P,
+      submit: ['제출하기', 'Submit'] as P,
+      grading: ['채점 중...', 'Grading...'] as P,
+      correct: ['정답입니다! 🎉', 'Correct! 🎉'] as P,
+      wrong: ['아쉬워요 😢', 'Not quite 😢'] as P,
+      errorLocation: ['오류 위치', 'Error Location'] as P,
+      correctWorking: ['올바른 풀이', 'Correct Working'] as P,
+      nextProblem: ['다음 문제', 'Next Problem'] as P,
+      checkResult: ['결과 확인', 'Check Result'] as P,
+      dayComplete: (day: number, lang: Lang) => lang === 'ko' ? `Day ${day} 완료!` : `Day ${day} Complete!`,
+      generatingProblems: (level: string, lang: Lang) => lang === 'ko' ? `AI가 ${level} 문제를 생성 중...` : `AI is generating ${level} problems...`,
+      retryTitle: ['조금 더 연습해봐요!', 'Keep practicing!'] as P,
+      retryDesc: ['비슷한 문제 3개를 더 풀어봅시다.', "Let's try 3 more similar problems."] as P,
+      retryBtn: ['유사문제 풀기', 'Try Similar Problems'] as P,
+    },
+
+    // 복습
+    review: {
+      title: ['수학 복습 큐', 'Math Review Queue'] as P,
+      subtitle: (n: number, lang: Lang) => lang === 'ko' ? `오늘 복습할 문제 ${n}개` : `${n} problem${n !== 1 ? 's' : ''} to review today`,
+      scheduledFor: ['복습 예정:', 'Scheduled:'] as P,
+      startReview: ['복습 풀기 ▼', 'Start Review ▼'] as P,
+      collapseReview: ['접기 ▲', 'Collapse ▲'] as P,
+      uploadAnswer: ['풀이 사진 업로드', 'Upload Answer Photo'] as P,
+      submit: ['제출', 'Submit'] as P,
+      grading: ['채점 중...', 'Grading...'] as P,
+      correctDone: ['정답! 복습 완료 🎉', 'Correct! Review done 🎉'] as P,
+      wrong: ['아쉬워요...', 'Not quite...'] as P,
+      markDone: ['이해했어요 — 완료 처리', 'I understand — Mark complete'] as P,
+      emptyTitle: ['오늘 복습 없음!', 'No reviews today!'] as P,
+      emptyDesc: ['오늘은 복습 없이 새 개념을 배울 차례예요!', "No reviews today — time to learn something new!"] as P,
+    },
+
+    // 진행률
+    progress: {
+      title: ['수학 진행률', 'Math Progress'] as P,
+      subtitle: ['30일 IGCSE 수학 챌린지', '30-Day IGCSE Math Challenge'] as P,
+      completedDays: ['완료 일수', 'Days Completed'] as P,
+      totalXp: ['누적 XP', 'Total XP'] as P,
+      dailyRate: ['일별 정답률', 'Daily Accuracy'] as P,
+      areaRate: ['영역별 정답률', 'Accuracy by Area'] as P,
+      weakTop3: ['약점 Top 3', 'Top 3 Weak Spots'] as P,
+      upcomingReview: ['예정 복습', 'Upcoming Reviews'] as P,
+      accuracy: ['정답률', 'Accuracy'] as P,
+    },
+
+    // 영역명
+    area: {
+      number: ['수', 'Number'] as P,
+      algebra: ['대수', 'Algebra'] as P,
+      geometry: ['기하', 'Geometry'] as P,
+      statistics: ['통계', 'Statistics'] as P,
+      sequences: ['수열', 'Sequences'] as P,
+      transformation: ['변환', 'Transformation'] as P,
+    },
+  },
 }

@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { CheckCircle, BookOpen, Clock, RefreshCw, ChevronRight, Flame, Calculator } from 'lucide-react'
 import type { Profile, MathSession } from '@/types'
 import type { Topic } from '@/lib/math/topics'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 
 interface Props {
   profile: Profile
@@ -33,6 +35,8 @@ const AREA_DOT: Record<string, string> = {
 }
 
 export default function MathDashboardClient({ profile, topics, sessionMap, currentDay, completedDays, reviewCount }: Props) {
+  const { t, lang } = useT()
+
   const todayTopic = topics.find(t => t.day === currentDay)
   const todaySession = sessionMap[currentDay] ?? null
 
@@ -43,12 +47,17 @@ export default function MathDashboardClient({ profile, topics, sessionMap, curre
   }
 
   function getSessionLabel(): string {
-    if (!todaySession || todaySession.status === 'not_started') return '학습 시작하기'
-    if (todaySession.status === 'in_progress') return '이어하기'
-    return '완료 ✓'
+    if (!todaySession || todaySession.status === 'not_started') return t(T.math.dashboard.startStudy)
+    if (todaySession.status === 'in_progress') return t(T.math.dashboard.continueStudy)
+    return t(T.math.dashboard.completed)
   }
 
   const totalXp = Object.values(sessionMap).reduce((sum, s) => sum + (s.xp_earned ?? 0), 0)
+
+  const areaLabel = (area: string) => {
+    const key = area as keyof typeof T.math.area
+    return T.math.area[key] ? t(T.math.area[key]) : area
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -57,21 +66,21 @@ export default function MathDashboardClient({ profile, topics, sessionMap, curre
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Calculator className="w-5 h-5 text-indigo-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Math Quest</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t(T.math.mathQuest)}</h1>
           </div>
-          <p className="text-gray-500">안녕하세요, {profile.name}님! Day {currentDay} / 30</p>
+          <p className="text-gray-500">{T.math.dashboard.greeting(profile.name, lang)} {T.math.dayOf(currentDay, lang)}</p>
         </div>
         <div className="flex gap-2">
           {profile.streak_days > 0 && (
             <div className="flex items-center gap-1.5 bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-full">
               <Flame className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-semibold text-orange-600">{profile.streak_days}일 연속</span>
+              <span className="text-sm font-semibold text-orange-600">{T.streak.daysStreak(profile.streak_days, lang)}</span>
             </div>
           )}
           {reviewCount > 0 && (
             <Link href="/math/review" className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full hover:bg-indigo-100 transition">
               <RefreshCw className="w-4 h-4 text-indigo-500" />
-              <span className="text-sm font-semibold text-indigo-600">복습 {reviewCount}개</span>
+              <span className="text-sm font-semibold text-indigo-600">{T.math.dashboard.reviewCount(reviewCount, lang)}</span>
             </Link>
           )}
         </div>
@@ -82,16 +91,16 @@ export default function MathDashboardClient({ profile, topics, sessionMap, curre
         <div className={`rounded-2xl border p-6 mb-6 ${AREA_COLORS[todayTopic.area] ?? 'bg-gray-50 border-gray-200'}`}>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">오늘의 미션</p>
-              <p className="text-sm text-gray-500">Day {currentDay}</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{t(T.math.dashboard.todayMission)}</p>
+              <p className="text-sm text-gray-500">{T.math.dayOf(currentDay, lang)}</p>
               <h2 className="text-xl font-bold text-gray-900 mt-1">{todayTopic.title}</h2>
               <div className="flex items-center gap-2 mt-2">
                 <span className={`w-2 h-2 rounded-full ${AREA_DOT[todayTopic.area] ?? 'bg-gray-400'}`} />
-                <span className="text-sm text-gray-500">{todayTopic.area}</span>
+                <span className="text-sm text-gray-500">{areaLabel(todayTopic.area)}</span>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-400">획득 가능 XP</p>
+              <p className="text-xs text-gray-400">{t(T.math.dashboard.possibleXp)}</p>
               <p className="text-2xl font-bold text-indigo-600">+50~</p>
             </div>
           </div>
@@ -116,26 +125,26 @@ export default function MathDashboardClient({ profile, topics, sessionMap, curre
       <div className="grid grid-cols-3 gap-3 mb-6">
         <Link href="/math/review" className="bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-sm transition text-center">
           <RefreshCw className="w-5 h-5 text-indigo-500 mx-auto mb-1" />
-          <p className="text-sm font-medium text-gray-700">복습</p>
-          {reviewCount > 0 && <p className="text-xs text-indigo-600 font-semibold">{reviewCount}개 대기</p>}
+          <p className="text-sm font-medium text-gray-700">{t(T.math.dashboard.review)}</p>
+          {reviewCount > 0 && <p className="text-xs text-indigo-600 font-semibold">{T.math.dashboard.reviewCount(reviewCount, lang)}</p>}
         </Link>
         <Link href="/math/progress" className="bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-sm transition text-center">
           <Clock className="w-5 h-5 text-indigo-500 mx-auto mb-1" />
-          <p className="text-sm font-medium text-gray-700">진행률</p>
-          <p className="text-xs text-gray-400">{completedDays.length}/30일</p>
+          <p className="text-sm font-medium text-gray-700">{t(T.math.dashboard.progress)}</p>
+          <p className="text-xs text-gray-400">{completedDays.length}/30{lang === 'ko' ? '일' : 'd'}</p>
         </Link>
         <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
           <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-1">
             <span className="text-xs">⭐</span>
           </div>
-          <p className="text-sm font-medium text-gray-700">XP</p>
+          <p className="text-sm font-medium text-gray-700">{t(T.math.dashboard.xpLabel)}</p>
           <p className="text-xs text-yellow-600 font-semibold">{totalXp.toLocaleString()}</p>
         </div>
       </div>
 
       {/* 30일 달력 그리드 */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-        <h2 className="font-bold text-gray-900 mb-4">30일 학습 달력</h2>
+        <h2 className="font-bold text-gray-900 mb-4">{t(T.math.dashboard.calendar)}</h2>
         <div className="grid grid-cols-6 gap-2">
           {topics.map((topic) => {
             const isCompleted = completedDays.includes(topic.day)
@@ -153,15 +162,15 @@ export default function MathDashboardClient({ profile, topics, sessionMap, curre
                   }`}
               >
                 <span className="text-base">{isCompleted ? '✓' : topic.day}</span>
-                {isToday && <span className="text-[10px] opacity-75">오늘</span>}
+                {isToday && <span className="text-[10px] opacity-75">{t(T.math.dashboard.calendarToday)}</span>}
               </Link>
             )
           })}
         </div>
         <div className="flex items-center gap-4 mt-4 text-xs text-gray-400">
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-green-100 border border-green-200 rounded" />완료</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-indigo-600 rounded" />오늘</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-orange-50 border border-orange-100 rounded" />미완료</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-green-100 border border-green-200 rounded" />{t(T.math.dashboard.calendarDone)}</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-indigo-600 rounded" />{t(T.math.dashboard.calendarToday)}</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-orange-50 border border-orange-100 rounded" />{t(T.math.dashboard.calendarIncomplete)}</div>
         </div>
       </div>
     </div>

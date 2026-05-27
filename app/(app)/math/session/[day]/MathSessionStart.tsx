@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Camera, Upload, Loader2, BookOpen, ChevronRight } from 'lucide-react'
 import type { Profile, MathSession } from '@/types'
 import type { Topic } from '@/lib/math/topics'
+import { useT } from '@/lib/i18n/LanguageContext'
+import { T } from '@/lib/i18n/translations'
 
 interface Props {
   profile: Profile
@@ -24,6 +26,7 @@ const AREA_COLORS: Record<string, string> = {
 
 export default function MathSessionStart({ profile, dayNumber, topic, existingSession }: Props) {
   const router = useRouter()
+  const { t, lang } = useT()
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -55,34 +58,23 @@ export default function MathSessionStart({ profile, dayNumber, topic, existingSe
     if (!imageFile) return
     setLoading(true)
     setError('')
-
     try {
       const sid = await getOrCreateSession()
-
       await fetch('/api/math/sessions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: sid, updates: { status: 'in_progress', started_at: new Date().toISOString() } }),
       })
-
       const base64 = await fileToBase64(imageFile)
-
       const res = await fetch('/api/math/extract-concept', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: base64,
-          grade: profile.grade,
-          topicTitle: topic.title,
-          sessionId: sid,
-        }),
+        body: JSON.stringify({ imageBase64: base64, grade: profile.grade, topicTitle: topic.title, sessionId: sid }),
       })
-
-      if (!res.ok) throw new Error('개념 추출에 실패했습니다.')
-
+      if (!res.ok) throw new Error(t(T.math.concept.generateError))
       router.push(`/math/session/${dayNumber}/concept`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : t(T.math.concept.generateError))
     } finally {
       setLoading(false)
     }
@@ -109,13 +101,15 @@ export default function MathSessionStart({ profile, dayNumber, topic, existingSe
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-4xl">✅</span>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Day {dayNumber} 완료!</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {lang === 'ko' ? `Day ${dayNumber} 완료!` : `Day ${dayNumber} Complete!`}
+        </h2>
         <p className="text-gray-500 mb-6">{topic.title}</p>
         <button
           onClick={() => router.push('/dashboard')}
           className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition"
         >
-          대시보드로 돌아가기
+          {t(T.math.backToDashboard)}
         </button>
       </div>
     )
@@ -125,13 +119,13 @@ export default function MathSessionStart({ profile, dayNumber, topic, existingSe
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-          <span>Math Quest</span>
+          <span>{t(T.math.mathQuest)}</span>
           <ChevronRight className="w-3 h-3" />
           <span>Day {dayNumber}</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900">Day {dayNumber} — {topic.title}</h1>
         <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${AREA_COLORS[topic.area] ?? 'bg-gray-100 text-gray-600'}`}>
-          {topic.area}
+          {T.math.area[topic.area as keyof typeof T.math.area] ? t(T.math.area[topic.area as keyof typeof T.math.area]) : topic.area}
         </span>
       </div>
 
@@ -141,8 +135,8 @@ export default function MathSessionStart({ profile, dayNumber, topic, existingSe
             <BookOpen className="w-5 h-5 text-indigo-600" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900 mb-1">교재 사진 업로드</h2>
-            <p className="text-sm text-gray-500">오늘 배운 교재나 노트 사진을 찍어 업로드하세요. AI가 개념을 분석합니다.</p>
+            <h2 className="font-semibold text-gray-900 mb-1">{t(T.math.session.uploadTitle)}</h2>
+            <p className="text-sm text-gray-500">{t(T.math.session.uploadDesc)}</p>
           </div>
         </div>
 
@@ -155,28 +149,19 @@ export default function MathSessionStart({ profile, dayNumber, topic, existingSe
               <Camera className="w-7 h-7 text-gray-400" />
             </div>
             <div className="text-center">
-              <p className="font-medium text-gray-700">사진을 찍거나 갤러리에서 선택</p>
-              <p className="text-xs text-gray-400 mt-1">교재, 노트, 필기 모두 가능</p>
+              <p className="font-medium text-gray-700">{t(T.math.session.cameraPrompt)}</p>
+              <p className="text-xs text-gray-400 mt-1">{t(T.math.session.cameraHint)}</p>
             </div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={handleFileSelect}
-            />
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
           </div>
         ) : (
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={preview} alt="업로드 미리보기" className="w-full rounded-xl object-contain max-h-80" />
+            <img src={preview} alt="preview" className="w-full rounded-xl object-contain max-h-80" />
             <button
               onClick={() => { setPreview(null); setImageFile(null) }}
               className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition"
-            >
-              ✕
-            </button>
+            >✕</button>
           </div>
         )}
 
@@ -189,15 +174,9 @@ export default function MathSessionStart({ profile, dayNumber, topic, existingSe
             className="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                AI가 개념을 분석 중...
-              </>
+              <><Loader2 className="w-4 h-4 animate-spin" />{t(T.math.session.analyzing)}</>
             ) : (
-              <>
-                <Upload className="w-4 h-4" />
-                개념 분석 시작
-              </>
+              <><Upload className="w-4 h-4" />{t(T.math.session.startAnalysis)}</>
             )}
           </button>
         </div>
@@ -208,7 +187,7 @@ export default function MathSessionStart({ profile, dayNumber, topic, existingSe
         disabled={loading}
         className="w-full py-3 text-gray-500 hover:text-gray-700 text-sm font-medium transition"
       >
-        사진 없이 AI 개념 설명으로 바로 시작 →
+        {t(T.math.session.skipUpload)}
       </button>
     </div>
   )
@@ -217,10 +196,7 @@ export default function MathSessionStart({ profile, dayNumber, topic, existingSe
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = () => {
-      const result = reader.result as string
-      resolve(result.split(',')[1])
-    }
+    reader.onload = () => resolve((reader.result as string).split(',')[1])
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
