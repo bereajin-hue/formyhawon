@@ -11,9 +11,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .from('profiles').select('*').eq('user_id', user.id).single()
   if (!profile) redirect('/setup')
 
+  const { data: mathSessions } = await supabase
+    .from('math_sessions')
+    .select('xp_earned')
+    .eq('student_id', profile.id)
+
+  const mathXp = (mathSessions ?? []).reduce((sum, s) => sum + (s.xp_earned ?? 0), 0)
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <SidebarNav profile={profile} />
+      <SidebarNav profile={profile} scholarXp={profile.xp_total} mathXp={mathXp} />
       <main className="flex-1 ml-64 p-8 min-h-screen">
         {children}
       </main>
