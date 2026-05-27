@@ -13,7 +13,7 @@ export default function SetupPage() {
   const [step, setStep] = useState<'role' | 'details'>('role')
   const [role, setRole] = useState<'student' | 'parent' | null>(null)
   const [name, setName] = useState('')
-  const [grade, setGrade] = useState<8 | 10 | null>(null)
+  const [grade, setGrade] = useState<8 | 9 | 10 | 11 | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -130,7 +130,7 @@ export default function SetupPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{t(T.setup.gradeLabel)}</label>
                 <div className="grid grid-cols-2 gap-3">
-                  {([8, 10] as const).map((g) => (
+                  {([8, 9, 10, 11] as const).map((g) => (
                     <button
                       key={g}
                       type="button"

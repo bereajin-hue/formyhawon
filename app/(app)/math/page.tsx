@@ -13,7 +13,8 @@ export default async function MathDashboardPage() {
   if (!profile) redirect('/setup')
   if (profile.role === 'parent') redirect('/parent')
 
-  const grade = (profile.grade === 10 ? 10 : 8) as 8 | 10
+  const rawGrade = profile.grade ?? 10
+  const grade = ([8, 9, 10, 11].includes(rawGrade) ? rawGrade : 10) as 8 | 9 | 10 | 11
   const topics = getTopics(grade)
 
   const { data: sessions } = await supabase

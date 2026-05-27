@@ -42,7 +42,7 @@ export default function LoginPage() {
             <span className="text-3xl">📚</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Scholar Quest</h1>
-          <p className="text-gray-500 text-sm mt-1">30일 영어 독서 챌린지</p>
+          <p className="text-gray-500 text-sm mt-1">IGCSE 학생을 위한 30일 프로젝트</p>
         </div>
 
         {sent ? (

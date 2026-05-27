@@ -70,10 +70,10 @@ export const YEAR10_TOPICS: Topic[] = [
   { day: 30, title: 'Chapter 2 & 6 Synthesis Review',           area: 'algebra' },
 ]
 
-export function getTopics(grade: 8 | 10): Topic[] {
-  return grade === 8 ? YEAR8_TOPICS : YEAR10_TOPICS
+export function getTopics(grade: 8 | 9 | 10 | 11): Topic[] {
+  return grade <= 9 ? YEAR8_TOPICS : YEAR10_TOPICS
 }
 
-export function getTopic(grade: 8 | 10, day: number): Topic | undefined {
+export function getTopic(grade: 8 | 9 | 10 | 11, day: number): Topic | undefined {
   return getTopics(grade).find((t) => t.day === day)
 }
