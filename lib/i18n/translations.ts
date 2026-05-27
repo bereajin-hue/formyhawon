@@ -299,7 +299,7 @@ export const T = {
     subtitle: ['처음 방문하셨군요! 프로필을 만들어주세요.', 'Welcome! Please create your profile.'] as P,
     whoAmI: ['나는 누구인가요?', 'Who are you?'] as P,
     student: ['학생', 'Student'] as P,
-    studentDesc: ['8학년 / 10학년', 'Grade 8 / Grade 10'] as P,
+    studentDesc: ['Grade 8 – 11학년', 'Grade 8 – 11'] as P,
     parent: ['부모', 'Parent'] as P,
     parentDesc: ['자녀 진행 관리', "Monitor child's progress"] as P,
     name: ['이름', 'Name'] as P,
