@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Camera, Loader2, ChevronRight, CheckCircle, XCircle, RefreshCw, Trophy } from 'lucide-react'
+import { Camera, Loader2, ChevronRight, CheckCircle, XCircle, RefreshCw, Trophy, PenLine } from 'lucide-react'
 import type { Profile, MathProblem, MathSession, MathGradeResult, MathLevel } from '@/types'
 import type { Topic } from '@/lib/math/topics'
 import { useT } from '@/lib/i18n/LanguageContext'
@@ -50,6 +50,8 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
   })
   const [problems, setProblems] = useState<MathProblem[]>(existingProblems)
   const [currentProblemIdx, setCurrentProblemIdx] = useState(0)
+  const [answerMode, setAnswerMode] = useState<'text' | 'image'>('text')
+  const [textAnswer, setTextAnswer] = useState('')
   const [preview, setPreview] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [grading, setGrading] = useState(false)
@@ -90,6 +92,7 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
       setProblems(prev => [...prev, ...data.problems])
       setCurrentProblemIdx(0)
       setGradeResult(null)
+      setTextAnswer('')
       setPreview(null)
       setImageFile(null)
     } catch (err) {
@@ -108,16 +111,29 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
   }
 
   async function handleGrade() {
-    if (!imageFile || !currentProblem) return
+    if (!currentProblem) return
+    if (answerMode === 'text' && !textAnswer.trim()) return
+    if (answerMode === 'image' && !imageFile) return
     setGrading(true)
     setError('')
     try {
-      const base64 = await fileToBase64(imageFile)
-      const mediaType = imageFile.type || 'image/jpeg'
+      let body: Record<string, unknown> = {
+        problemId: currentProblem.id,
+        problemText: currentProblem.problem_text,
+        correctAnswer: currentProblem.correct_answer,
+        grade: profile.grade,
+      }
+      if (answerMode === 'text') {
+        body.textAnswer = textAnswer.trim()
+      } else {
+        const base64 = await fileToBase64(imageFile!)
+        body.answerImageBase64 = base64
+        body.imageMediaType = imageFile!.type || 'image/jpeg'
+      }
       const res = await fetch('/api/math/grade-answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ problemId: currentProblem.id, answerImageBase64: base64, imageMediaType: mediaType, problemText: currentProblem.problem_text, correctAnswer: currentProblem.correct_answer, grade: profile.grade }),
+        body: JSON.stringify(body),
       })
       const result: MathGradeResult = await res.json()
       if (!res.ok) throw new Error('채점 실패')
@@ -136,6 +152,7 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
     if (currentProblemIdx < updatedLevelProblems.length - 1) {
       setCurrentProblemIdx(prev => prev + 1)
       setGradeResult(null)
+      setTextAnswer('')
       setPreview(null)
       setImageFile(null)
     } else {
@@ -152,6 +169,7 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
       setCurrentLevel(nextLevel)
       setCurrentProblemIdx(0)
       setGradeResult(null)
+      setTextAnswer('')
       setPreview(null)
       setImageFile(null)
     } else {
@@ -257,21 +275,60 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
 
             {gradeResult === null && (
               <div>
-                {!preview ? (
-                  <div onClick={() => fileRef.current?.click()} className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center gap-3 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition">
-                    <Camera className="w-8 h-8 text-gray-400" />
-                    <p className="text-sm text-gray-500">{t(T.math.problems.uploadAnswer)}</p>
-                    <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
-                  </div>
-                ) : (
-                  <div className="relative mb-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={preview} alt="answer" className="w-full rounded-xl max-h-60 object-contain" />
-                    <button onClick={() => { setPreview(null); setImageFile(null) }} className="absolute top-2 right-2 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70">✕</button>
-                  </div>
+                {/* 모드 전환 탭 */}
+                <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-4">
+                  <button
+                    type="button"
+                    onClick={() => { setAnswerMode('text'); setPreview(null); setImageFile(null) }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-all
+                      ${answerMode === 'text' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <PenLine className="w-4 h-4" />
+                    {t(T.math.problems.modeText)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAnswerMode('image'); setTextAnswer('') }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-all
+                      ${answerMode === 'image' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <Camera className="w-4 h-4" />
+                    {t(T.math.problems.modePhoto)}
+                  </button>
+                </div>
+
+                {/* 텍스트 입력 모드 */}
+                {answerMode === 'text' && (
+                  <textarea
+                    value={textAnswer}
+                    onChange={(e) => setTextAnswer(e.target.value)}
+                    placeholder={t(T.math.problems.textPlaceholder)}
+                    rows={5}
+                    className="w-full text-gray-800 text-sm border border-gray-200 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none placeholder-gray-300"
+                  />
                 )}
+
+                {/* 사진 업로드 모드 */}
+                {answerMode === 'image' && (
+                  !preview ? (
+                    <div onClick={() => fileRef.current?.click()} className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center gap-3 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition">
+                      <Camera className="w-8 h-8 text-gray-400" />
+                      <p className="text-sm text-gray-500">{t(T.math.problems.uploadAnswer)}</p>
+                      <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
+                    </div>
+                  ) : (
+                    <div className="relative mb-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={preview} alt="answer" className="w-full rounded-xl max-h-60 object-contain" />
+                      <button onClick={() => { setPreview(null); setImageFile(null) }} className="absolute top-2 right-2 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70">✕</button>
+                    </div>
+                  )
+                )}
+
                 {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
-                {preview && (
+
+                {/* 제출 버튼 — 둘 중 하나라도 입력되면 활성화 */}
+                {(textAnswer.trim() || preview) && (
                   <button onClick={handleGrade} disabled={grading} className="w-full mt-3 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center gap-2">
                     {grading ? <><Loader2 className="w-4 h-4 animate-spin" />{t(T.math.problems.grading)}</> : t(T.math.problems.submit)}
                   </button>

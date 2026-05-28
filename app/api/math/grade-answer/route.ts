@@ -10,35 +10,37 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { problemId, answerImageBase64, imageMediaType, problemText, correctAnswer, grade } = await req.json()
-    const mediaType = (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(imageMediaType)
-      ? imageMediaType
-      : 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+    const { problemId, answerImageBase64, imageMediaType, textAnswer, problemText, correctAnswer, grade } = await req.json()
 
     const client = getAnthropicClient()
+
+    // 텍스트 또는 이미지 모드 분기
+    let userContent: Parameters<typeof client.messages.create>[0]['messages'][0]['content']
+
+    if (textAnswer) {
+      userContent = GRADE_ANSWER_USER(problemText, correctAnswer, grade, textAnswer)
+    } else {
+      const mediaType = (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(imageMediaType)
+        ? imageMediaType
+        : 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+
+      userContent = [
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: mediaType, data: answerImageBase64 },
+        },
+        {
+          type: 'text',
+          text: GRADE_ANSWER_USER(problemText, correctAnswer, grade),
+        },
+      ]
+    }
+
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 800,
       system: GRADE_ANSWER_SYSTEM,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mediaType,
-                data: answerImageBase64,
-              },
-            },
-            {
-              type: 'text',
-              text: GRADE_ANSWER_USER(problemText, correctAnswer, grade),
-            },
-          ],
-        },
-      ],
+      messages: [{ role: 'user', content: userContent }],
     })
 
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
@@ -46,11 +48,7 @@ export async function POST(req: NextRequest) {
 
     await supabase
       .from('math_problems')
-      .update({
-        is_correct: result.is_correct,
-        ai_feedback: result.feedback,
-        ai_score: result.score,
-      })
+      .update({ is_correct: result.is_correct, ai_feedback: result.feedback, ai_score: result.score })
       .eq('id', problemId)
 
     if (!result.is_correct) {
@@ -59,13 +57,10 @@ export async function POST(req: NextRequest) {
 
       if (problem) {
         const { data: existingRetries } = await supabase
-          .from('math_review_queue')
-          .select('id')
-          .eq('problem_id', problemId)
+          .from('math_review_queue').select('id').eq('problem_id', problemId)
 
         const retryCount = existingRetries?.length ?? 0
         const daysAhead = retryCount === 0 ? 1 : retryCount === 1 ? 3 : 7
-
         const scheduledDate = new Date()
         scheduledDate.setDate(scheduledDate.getDate() + daysAhead)
 

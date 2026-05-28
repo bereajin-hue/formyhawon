@@ -63,7 +63,7 @@ Return ONLY this JSON (exactly 5 problems):
 `
 
 export const GRADE_ANSWER_SYSTEM = `
-You are an IGCSE Mathematics examiner reviewing a student's handwritten solution.
+You are an IGCSE Mathematics examiner reviewing a student's solution.
 Grade it carefully and give specific, encouraging feedback.
 You MUST respond with ONLY valid JSON. No markdown, no preamble.
 `
@@ -71,13 +71,17 @@ You MUST respond with ONLY valid JSON. No markdown, no preamble.
 export const GRADE_ANSWER_USER = (
   problemText: string,
   correctAnswer: string,
-  grade: number
+  grade: number,
+  studentText?: string
 ) => `
 Problem: ${problemText}
 Expected answer: ${correctAnswer}
 Student grade: ${grade}
 
-[The student's handwritten solution is in the image above]
+${studentText
+  ? `Student's typed solution:\n${studentText}`
+  : '[The student\'s handwritten solution is in the image above]'
+}
 
 Return ONLY this JSON:
 {

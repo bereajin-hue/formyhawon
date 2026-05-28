@@ -375,6 +375,10 @@ export const T = {
     problems: {
       problemOf: (n: number, total: number, lang: Lang) => lang === 'ko' ? `문제 ${n} / ${total}` : `Problem ${n} / ${total}`,
       uploadAnswer: ['풀이 사진 촬영 또는 업로드', 'Take/Upload your answer photo'] as P,
+      textAnswer: ['텍스트로 풀이 입력', 'Type your answer'] as P,
+      textPlaceholder: ['풀이 과정과 최종 답을 입력하세요\n예) 3x + 7 = 3(5) + 7 = 15 + 7 = 22', 'Write your working and final answer\ne.g. 3x + 7 = 3(5) + 7 = 15 + 7 = 22'] as P,
+      modePhoto: ['📷 사진', '📷 Photo'] as P,
+      modeText: ['✏️ 텍스트', '✏️ Text'] as P,
       submit: ['제출하기', 'Submit'] as P,
       grading: ['채점 중...', 'Grading...'] as P,
       correct: ['정답입니다! 🎉', 'Correct! 🎉'] as P,
