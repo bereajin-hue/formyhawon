@@ -173,7 +173,7 @@ export default function VocabClient({ readingBooks, todaySession }: Props) {
                 placeholder={T.vocab.sentencePlaceholder(word.word, lang)}
                 rows={2}
                 disabled={status === 'checking'}
-                className="w-full text-sm border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none placeholder-gray-300 disabled:bg-gray-50"
+                className="w-full text-sm text-gray-800 border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none placeholder-gray-300 disabled:bg-gray-50"
               />
             </div>
           ))}
