@@ -107,10 +107,11 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
     setError('')
     try {
       const base64 = await fileToBase64(imageFile)
+      const mediaType = imageFile.type || 'image/jpeg'
       const res = await fetch('/api/math/grade-answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ problemId: currentProblem.id, answerImageBase64: base64, problemText: currentProblem.problem_text, correctAnswer: currentProblem.correct_answer, grade: profile.grade }),
+        body: JSON.stringify({ problemId: currentProblem.id, answerImageBase64: base64, imageMediaType: mediaType, problemText: currentProblem.problem_text, correctAnswer: currentProblem.correct_answer, grade: profile.grade }),
       })
       const result: MathGradeResult = await res.json()
       if (!res.ok) throw new Error('채점 실패')

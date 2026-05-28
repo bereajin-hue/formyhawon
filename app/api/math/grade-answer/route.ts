@@ -10,7 +10,10 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { problemId, answerImageBase64, problemText, correctAnswer, grade } = await req.json()
+    const { problemId, answerImageBase64, imageMediaType, problemText, correctAnswer, grade } = await req.json()
+    const mediaType = (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(imageMediaType)
+      ? imageMediaType
+      : 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
 
     const client = getAnthropicClient()
     const message = await client.messages.create({
@@ -25,7 +28,7 @@ export async function POST(req: NextRequest) {
               type: 'image',
               source: {
                 type: 'base64',
-                media_type: 'image/jpeg',
+                media_type: mediaType,
                 data: answerImageBase64,
               },
             },
