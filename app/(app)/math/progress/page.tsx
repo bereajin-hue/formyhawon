@@ -15,23 +15,14 @@ export default async function MathProgressPage() {
   const grade = ([8, 9, 10, 11].includes(profile.grade ?? 10) ? (profile.grade ?? 10) : 10) as 8 | 9 | 10 | 11
   const topics = getTopics(grade)
 
-  const { data: sessions } = await supabase
-    .from('math_sessions')
-    .select('*')
-    .eq('student_id', profile.id)
-    .order('day_number', { ascending: true })
-
-  const { data: reports } = await supabase
-    .from('math_daily_reports')
-    .select('*')
-    .eq('student_id', profile.id)
-    .order('day_number', { ascending: true })
-
-  const { data: reviewQueue } = await supabase
-    .from('math_review_queue')
-    .select('scheduled_date')
-    .eq('student_id', profile.id)
-    .eq('completed', false)
+  const [{ data: sessions }, { data: reports }, { data: reviewQueue }] = await Promise.all([
+    supabase.from('math_sessions').select('*')
+      .eq('student_id', profile.id).order('day_number', { ascending: true }),
+    supabase.from('math_daily_reports').select('*')
+      .eq('student_id', profile.id).order('day_number', { ascending: true }),
+    supabase.from('math_review_queue').select('scheduled_date')
+      .eq('student_id', profile.id).eq('completed', false),
+  ])
 
   const completedSessions = (sessions ?? []).filter(s => s.status === 'completed')
   const totalXp = completedSessions.reduce((sum, s) => sum + (s.xp_earned ?? 0), 0)

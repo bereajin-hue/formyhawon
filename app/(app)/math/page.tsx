@@ -17,20 +17,14 @@ export default async function MathDashboardPage() {
   const grade = ([8, 9, 10, 11].includes(rawGrade) ? rawGrade : 10) as 8 | 9 | 10 | 11
   const topics = getTopics(grade)
 
-  const { data: sessions } = await supabase
-    .from('math_sessions')
-    .select('*')
-    .eq('student_id', profile.id)
-    .order('day_number', { ascending: true })
-
   const today = new Date().toISOString().split('T')[0]
 
-  const { data: reviewItems } = await supabase
-    .from('math_review_queue')
-    .select('id')
-    .eq('student_id', profile.id)
-    .lte('scheduled_date', today)
-    .eq('completed', false)
+  const [{ data: sessions }, { data: reviewItems }] = await Promise.all([
+    supabase.from('math_sessions').select('*')
+      .eq('student_id', profile.id).order('day_number', { ascending: true }),
+    supabase.from('math_review_queue').select('id')
+      .eq('student_id', profile.id).lte('scheduled_date', today).eq('completed', false),
+  ])
 
   const completedDays = (sessions ?? [])
     .filter(s => s.status === 'completed')

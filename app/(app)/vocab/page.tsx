@@ -11,20 +11,15 @@ export default async function VocabPage() {
     .from('profiles').select('*').eq('user_id', user.id).single()
   if (!profile) redirect('/setup')
 
-  const { data: books } = await supabase
-    .from('books')
-    .select('*')
-    .eq('user_id', profile.id)
-    .eq('status', 'reading')
-    .order('created_at', { ascending: false })
-
   const today = new Date().toISOString().split('T')[0]
-  const { data: todaySession } = await supabase
-    .from('vocab_sessions')
-    .select('*')
-    .eq('user_id', profile.id)
-    .eq('session_date', today)
-    .maybeSingle()
+
+  const [{ data: books }, { data: todaySession }] = await Promise.all([
+    supabase.from('books').select('*')
+      .eq('user_id', profile.id).eq('status', 'reading')
+      .order('created_at', { ascending: false }),
+    supabase.from('vocab_sessions').select('*')
+      .eq('user_id', profile.id).eq('session_date', today).maybeSingle(),
+  ])
 
   return (
     <VocabClient

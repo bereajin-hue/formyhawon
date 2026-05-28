@@ -20,13 +20,18 @@ export default async function DashboardPage() {
 
   const today = new Date().toISOString().split('T')[0]
 
-  const { data: dailyMission } = await supabase
-    .from('daily_missions').select('*')
-    .eq('user_id', profile.id).eq('mission_date', today).single()
-
-  const { data: allMissions } = await supabase
-    .from('daily_missions').select('mission_date, all_done')
-    .eq('user_id', profile.id).order('mission_date', { ascending: true })
+  const [
+    { data: dailyMission },
+    { data: allMissions },
+    { data: existingMilestones },
+  ] = await Promise.all([
+    supabase.from('daily_missions').select('*')
+      .eq('user_id', profile.id).eq('mission_date', today).single(),
+    supabase.from('daily_missions').select('mission_date, all_done')
+      .eq('user_id', profile.id).order('mission_date', { ascending: true }),
+    supabase.from('milestones').select('*').eq('user_id', profile.id)
+      .order('day_number', { ascending: true }),
+  ])
 
   const startDate = allMissions?.[0]?.mission_date ?? today
   const start = new Date(startDate)
@@ -40,10 +45,7 @@ export default async function DashboardPage() {
       return Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
     })
 
-  const { data: existingMilestones } = await supabase
-    .from('milestones').select('day_number').eq('user_id', profile.id)
-
-  const existingDays = new Set(existingMilestones?.map((m) => m.day_number) ?? [])
+  const existingDays = new Set(existingMilestones?.map((m: { day_number: number }) => m.day_number) ?? [])
   const toInsert = THRESHOLDS.filter(
     (t) => profile.xp_total >= t.xp_required && !existingDays.has(t.day_number)
   ).map((t) => ({
@@ -53,13 +55,11 @@ export default async function DashboardPage() {
     achieved_at: new Date().toISOString(),
   }))
 
+  let milestones = existingMilestones ?? []
   if (toInsert.length > 0) {
-    await supabase.from('milestones').insert(toInsert)
+    const { data: inserted } = await supabase.from('milestones').insert(toInsert).select()
+    milestones = [...milestones, ...(inserted ?? [])].sort((a, b) => a.day_number - b.day_number)
   }
-
-  const { data: milestones } = await supabase
-    .from('milestones').select('*').eq('user_id', profile.id)
-    .order('day_number', { ascending: true })
 
   return (
     <DashboardClient
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
       completedDays={completedDays}
       startDate={startDate}
       currentDay={currentDay}
-      milestones={milestones ?? []}
+      milestones={milestones}
     />
   )
 }
