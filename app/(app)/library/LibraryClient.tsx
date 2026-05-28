@@ -105,7 +105,7 @@ export default function LibraryClient({ initialBooks, profile }: Props) {
       )}
 
       {showModal && (
-        <AddBookModal onClose={() => setShowModal(false)} onAdd={handleAddBook} />
+        <AddBookModal onClose={() => setShowModal(false)} onAdd={handleAddBook} grade={profile.grade ?? 10} />
       )}
     </div>
   )

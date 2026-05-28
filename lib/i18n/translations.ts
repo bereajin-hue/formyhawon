@@ -121,6 +121,10 @@ export const T = {
     adding: ['생성 중...', 'Creating...'] as P,
     add: ['추가하기 ✨', 'Add ✨'] as P,
     errorDefault: ['오류가 발생했습니다.', 'An error occurred.'] as P,
+    recommended: ['추천 도서에서 선택', 'Pick from Recommended'] as P,
+    recommendedHint: ['클릭하면 자동 입력돼요', 'Click to auto-fill'] as P,
+    loadingRecommended: ['추천 도서 불러오는 중...', 'Loading recommendations...'] as P,
+    orManual: ['직접 입력', 'Enter manually'] as P,
   },
 
   // ──────────── 책 상세 ────────────
