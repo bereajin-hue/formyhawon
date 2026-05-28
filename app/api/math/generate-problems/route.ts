@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const client = getAnthropicClient()
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2000,
+      max_tokens: 4000,
       system: GENERATE_PROBLEMS_SYSTEM,
       messages: [
         {
@@ -29,6 +29,9 @@ export async function POST(req: NextRequest) {
       ],
     })
 
+    if (message.stop_reason === 'max_tokens') {
+      throw new Error('Response truncated — increase max_tokens')
+    }
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
     const { problems } = parseClaudeJSON<{ problems: GeneratedMathProblem[] }>(raw)
 

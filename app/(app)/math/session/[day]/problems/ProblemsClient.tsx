@@ -42,9 +42,11 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [currentLevel, setCurrentLevel] = useState<MathLevel>(() => {
-    const completedLevels = new Set(existingProblems.filter(p => p.is_correct !== null && !p.is_retry).map(p => p.level))
     for (const level of LEVELS) {
-      if (!completedLevels.has(level)) return level
+      const levelPs = existingProblems.filter(p => p.level === level && !p.is_retry)
+      const allGraded = levelPs.length > 0 && levelPs.every(p => p.is_correct !== null)
+      const correct = levelPs.filter(p => p.is_correct === true).length
+      if (!allGraded || correct < MASTERY_THRESHOLD[level]) return level
     }
     return 'synthesis'
   })
