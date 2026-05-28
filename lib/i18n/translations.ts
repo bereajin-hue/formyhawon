@@ -374,8 +374,6 @@ export const T = {
     // 문제 풀기
     problems: {
       problemOf: (n: number, total: number, lang: Lang) => lang === 'ko' ? `문제 ${n} / ${total}` : `Problem ${n} / ${total}`,
-      showHint: ['힌트 보기', 'Show Hint'] as P,
-      hideHint: ['힌트 숨기기', 'Hide Hint'] as P,
       uploadAnswer: ['풀이 사진 촬영 또는 업로드', 'Take/Upload your answer photo'] as P,
       submit: ['제출하기', 'Submit'] as P,
       grading: ['채점 중...', 'Grading...'] as P,

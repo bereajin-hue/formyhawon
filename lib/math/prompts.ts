@@ -48,8 +48,7 @@ Return ONLY this JSON:
   "problems": [
     {
       "problem_text": "the question",
-      "correct_answer": "full answer with working",
-      "hint": "one-sentence hint without revealing the answer"
+      "correct_answer": "full answer with working"
     }
   ]
 }

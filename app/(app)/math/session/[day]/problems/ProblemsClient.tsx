@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Camera, Loader2, ChevronRight, Lightbulb, CheckCircle, XCircle, RefreshCw, Trophy } from 'lucide-react'
+import { Camera, Loader2, ChevronRight, CheckCircle, XCircle, RefreshCw, Trophy } from 'lucide-react'
 import type { Profile, MathProblem, MathSession, MathGradeResult, MathLevel } from '@/types'
 import type { Topic } from '@/lib/math/topics'
 import { useT } from '@/lib/i18n/LanguageContext'
@@ -48,10 +48,8 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
     }
     return 'synthesis'
   })
-  const [problems, setProblems] = useState<(MathProblem & { hint?: string })[]>(existingProblems)
+  const [problems, setProblems] = useState<MathProblem[]>(existingProblems)
   const [currentProblemIdx, setCurrentProblemIdx] = useState(0)
-  const [hints, setHints] = useState<Record<string, string>>({})
-  const [showHint, setShowHint] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [grading, setGrading] = useState(false)
@@ -84,14 +82,10 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setProblems(prev => [...prev, ...data.problems])
-      const hintMap: Record<string, string> = {}
-      data.problems.forEach((p: MathProblem, i: number) => { hintMap[p.id] = data.hints[i] ?? '' })
-      setHints(prev => ({ ...prev, ...hintMap }))
       setCurrentProblemIdx(0)
       setGradeResult(null)
       setPreview(null)
       setImageFile(null)
-      setShowHint(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error')
     } finally {
@@ -137,7 +131,6 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
       setGradeResult(null)
       setPreview(null)
       setImageFile(null)
-      setShowHint(false)
     } else {
       await checkMasteryGate()
     }
@@ -254,14 +247,6 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
 
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-4">
             <p className="text-lg font-semibold text-gray-900 leading-relaxed mb-4">{currentProblem.problem_text}</p>
-
-            <button onClick={() => setShowHint(!showHint)} className="flex items-center gap-1.5 text-sm text-amber-600 hover:text-amber-700 mb-4">
-              <Lightbulb className="w-4 h-4" />
-              {showHint ? t(T.math.problems.hideHint) : t(T.math.problems.showHint)}
-            </button>
-            {showHint && hints[currentProblem.id] && (
-              <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-4 text-sm text-amber-800">{hints[currentProblem.id]}</div>
-            )}
 
             {gradeResult === null && (
               <div>

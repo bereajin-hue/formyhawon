@@ -235,7 +235,6 @@ export interface MathDailyReport {
 export interface GeneratedMathProblem {
   problem_text: string
   correct_answer: string
-  hint: string
 }
 
 export interface MathGradeResult {

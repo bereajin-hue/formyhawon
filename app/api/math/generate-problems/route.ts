@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error
 
-    return NextResponse.json({ problems: inserted, hints: problems.map((p) => p.hint) })
+    return NextResponse.json({ problems: inserted })
   } catch (err) {
     console.error('generate-problems error:', err)
     return NextResponse.json({ error: 'Failed to generate problems' }, { status: 500 })
