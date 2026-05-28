@@ -180,15 +180,34 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
   async function generateRetryProblems() {
     const wrongProblems = problems.filter(p => p.level === currentLevel && p.is_correct === false && !p.is_retry)
     const firstWrong = wrongProblems[0]
-    if (!firstWrong) return
+    // 틀린 문제가 없으면(0/0 케이스) 일반 문제 새로 생성
+    if (!firstWrong) {
+      await generateProblems(currentLevel)
+      return
+    }
     setGenerating(true)
     try {
       const res = await fetch('/api/math/generate-retry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ problemText: firstWrong.problem_text, errorLocation: firstWrong.ai_feedback ?? null, topicTitle: topic.title, grade: profile.grade, level: currentLevel }),
+        body: JSON.stringify({
+          sessionId: session.id,
+          problemText: firstWrong.problem_text,
+          errorLocation: firstWrong.ai_feedback ?? null,
+          topicTitle: topic.title,
+          grade: profile.grade,
+          level: currentLevel,
+        }),
       })
-      await res.json()
+      const data = await res.json()
+      if (data.problems?.length > 0) {
+        setProblems(prev => [...prev, ...data.problems])
+        setCurrentProblemIdx(0)
+        setGradeResult(null)
+        setTextAnswer('')
+        setPreview(null)
+        setImageFile(null)
+      }
     } finally {
       setGenerating(false)
     }
@@ -365,8 +384,9 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
         </>
       )}
 
-      {/* Mastery Gate 실패 */}
-      {levelProblems.every(p => p.is_correct !== null) &&
+      {/* Mastery Gate 실패 — 문제가 실제로 있고 모두 채점된 경우에만 */}
+      {levelProblems.length > 0 &&
+        levelProblems.every(p => p.is_correct !== null) &&
         levelProblems.filter(p => p.is_correct === true).length < MASTERY_THRESHOLD[currentLevel] && (
         <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
@@ -379,8 +399,12 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
             </div>
           </div>
           <p className="text-sm text-gray-600 mb-4">{t(T.math.problems.retryDesc)}</p>
-          <button onClick={() => router.push(`/math/session/${dayNumber}/problems`)} className="w-full py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition">
-            {t(T.math.problems.retryBtn)}
+          <button
+            onClick={generateRetryProblems}
+            disabled={generating}
+            className="w-full py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 disabled:opacity-50 transition flex items-center justify-center gap-2"
+          >
+            {generating ? <><Loader2 className="w-4 h-4 animate-spin" />{lang === 'ko' ? '문제 생성 중...' : 'Generating...'}</> : t(T.math.problems.retryBtn)}
           </button>
         </div>
       )}
