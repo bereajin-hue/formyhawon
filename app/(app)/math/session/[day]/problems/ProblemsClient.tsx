@@ -73,7 +73,13 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
     setGenerating(true)
     setError('')
     try {
-      const conceptSummary = session.concept_summary ? JSON.stringify(session.concept_summary) : topic.title
+      // concept_summary의 concept_name이 현재 topicTitle과 일치할 때만 사용 — 불일치시 오염 방지
+      const summary = session.concept_summary as { concept_name?: string } | null
+      const conceptMatchesTopic = summary?.concept_name
+        ? topic.title.toLowerCase().includes(summary.concept_name.toLowerCase().split(' ')[0] ?? '')
+          || summary.concept_name.toLowerCase().includes(topic.title.toLowerCase().split(' ')[0] ?? '')
+        : false
+      const conceptSummary = (summary && conceptMatchesTopic) ? JSON.stringify(summary) : topic.title
       const res = await fetch('/api/math/generate-problems', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -25,10 +25,12 @@ Please provide the following in JSON format:
 
 export const GENERATE_PROBLEMS_SYSTEM = `
 You are an expert IGCSE Mathematics problem generator.
+You MUST generate problems ONLY about the exact topic specified — never about any other topic.
 Generate exactly 5 problems at the specified difficulty level.
-Easy = direct 1-step formula application, no tricks.
-Medium = 2-3 steps, minor manipulation required.
-Hard = multi-step, application in real context, may combine concepts.
+Easy = direct 1-step application of the topic concept, no tricks.
+Medium = 2-3 steps within the same topic.
+Hard = multi-step, real-world context, still strictly the same topic.
+Synthesis = combines the topic with related concepts from the same chapter.
 You MUST respond with ONLY valid JSON. No markdown, no preamble.
 `
 
@@ -38,12 +40,18 @@ export const GENERATE_PROBLEMS_USER = (
   conceptSummary: string,
   level: 'easy' | 'medium' | 'hard' | 'synthesis'
 ) => `
-Grade: ${grade}
-Topic: ${topicTitle}
-Concept summary: ${conceptSummary}
-Difficulty level: ${level}
+Grade: ${grade} (IGCSE)
+TOPIC: ${topicTitle}
+Difficulty: ${level}
+${conceptSummary && conceptSummary !== topicTitle ? `Context notes: ${conceptSummary}` : ''}
 
-Return ONLY this JSON:
+IMPORTANT: Every single problem MUST be specifically and exclusively about "${topicTitle}".
+If the topic is about Sets & Venn diagrams, ALL problems must use sets, unions, intersections, complements.
+If the topic is about Probability, ALL problems must involve calculating probabilities.
+If the topic is about Vectors, ALL problems must involve vector operations.
+Do NOT generate problems about algebra, substitution, or any other topic not listed above.
+
+Return ONLY this JSON (exactly 5 problems):
 {
   "problems": [
     {
