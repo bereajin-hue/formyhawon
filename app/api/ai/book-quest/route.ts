@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     // 2. Claude API 호출
     const anthropic = getAnthropicClient()
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-4-6',
       max_tokens: 4000,
       system: BOOK_QUEST_SYSTEM,
       messages: [{ role: 'user', content: bookQuestPrompt(title, author, grade) }],
