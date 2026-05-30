@@ -396,7 +396,7 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
             <div>
               <p className="font-bold text-gray-900">{t(T.math.problems.retryTitle)}</p>
               <p className="text-sm text-gray-500">
-                {levelProblems.filter(p => p.is_correct).length}/{levelProblems.length} — {lang === 'ko' ? '통과 기준' : 'Pass'}: {MASTERY_THRESHOLD[currentLevel]}/5
+                {levelProblems.filter(p => p.is_correct).length}/{levelProblems.length} — {lang === 'ko' ? '통과 기준' : 'Pass'}: {MASTERY_THRESHOLD[currentLevel]}/{levelProblems.length}
               </p>
             </div>
           </div>

@@ -23,10 +23,16 @@ Please provide the following in JSON format:
 }
 `
 
+export const PROBLEMS_COUNT: Record<'easy' | 'medium' | 'hard' | 'synthesis', number> = {
+  easy: 5,
+  medium: 5,
+  hard: 10,
+  synthesis: 5,
+}
+
 export const GENERATE_PROBLEMS_SYSTEM = `
 You are an expert IGCSE Mathematics problem generator.
 You MUST generate problems ONLY about the exact topic specified — never about any other topic.
-Generate exactly 5 problems at the specified difficulty level.
 Easy = direct 1-step application of the topic concept, no tricks.
 Medium = 2-3 steps within the same topic.
 Hard = multi-step, real-world context, still strictly the same topic.
@@ -39,7 +45,9 @@ export const GENERATE_PROBLEMS_USER = (
   topicTitle: string,
   conceptSummary: string,
   level: 'easy' | 'medium' | 'hard' | 'synthesis'
-) => `
+) => {
+  const count = PROBLEMS_COUNT[level]
+  return `
 Grade: ${grade} (IGCSE)
 TOPIC: ${topicTitle}
 Difficulty: ${level}
@@ -51,7 +59,7 @@ If the topic is about Probability, ALL problems must involve calculating probabi
 If the topic is about Vectors, ALL problems must involve vector operations.
 Do NOT generate problems about algebra, substitution, or any other topic not listed above.
 
-Return ONLY this JSON (exactly 5 problems):
+Return ONLY this JSON (exactly ${count} problems):
 {
   "problems": [
     {
@@ -61,6 +69,7 @@ Return ONLY this JSON (exactly 5 problems):
   ]
 }
 `
+}
 
 export const GRADE_ANSWER_SYSTEM = `
 You are an IGCSE Mathematics examiner reviewing a student's solution.

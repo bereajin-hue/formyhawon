@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getAnthropicClient, parseClaudeJSON } from '@/lib/claude'
-import { GENERATE_PROBLEMS_SYSTEM, GENERATE_PROBLEMS_USER } from '@/lib/math/prompts'
+import { GENERATE_PROBLEMS_SYSTEM, GENERATE_PROBLEMS_USER, PROBLEMS_COUNT } from '@/lib/math/prompts'
 import type { GeneratedMathProblem, MathLevel } from '@/types'
 
 export async function POST(req: NextRequest) {
@@ -16,10 +16,12 @@ export async function POST(req: NextRequest) {
 
     const { sessionId, level, grade, topicTitle, conceptSummary } = await req.json()
 
+    const maxTokens = PROBLEMS_COUNT[level as MathLevel] >= 10 ? 6000 : 4000
+
     const client = getAnthropicClient()
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
+      max_tokens: maxTokens,
       system: GENERATE_PROBLEMS_SYSTEM,
       messages: [
         {
