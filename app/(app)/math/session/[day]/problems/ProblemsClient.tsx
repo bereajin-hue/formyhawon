@@ -30,10 +30,10 @@ const MASTERY_THRESHOLD: Record<MathLevel, number> = {
   synthesis: 0,
 }
 const XP_PER_CORRECT: Record<MathLevel, number> = {
-  easy: 5,
-  medium: 10,
-  hard: 20,
-  synthesis: 30,
+  easy: 3,
+  medium: 5,
+  hard: 8,
+  synthesis: 12,
 }
 
 export default function ProblemsClient({ profile, dayNumber, topic, session, existingProblems }: Props) {
@@ -218,7 +218,7 @@ export default function ProblemsClient({ profile, dayNumber, topic, session, exi
   async function completeSession() {
     const allProblems = problems.filter(p => !p.is_retry)
     const totalCorrect = allProblems.filter(p => p.is_correct).length
-    const finalXp = xpEarned + 50
+    const finalXp = xpEarned + 30
     await fetch('/api/math/sessions', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

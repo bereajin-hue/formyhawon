@@ -134,7 +134,7 @@ export default function ParentDashboard({ parentProfile, students }: Props) {
           const gradientColor = GRADE_COLORS[grade] ?? 'from-indigo-500 to-purple-600'
           const studentMilestones = milestoneMap[student.id] ?? []
           const xp = student.xp_total
-          const nextTarget = [500, 900, 1500].find((t) => xp < t) ?? 1500
+          const nextTarget = [900, 1900, 3200].find((t) => xp < t) ?? 3200
           const pct = Math.min(100, Math.round((xp / nextTarget) * 100))
 
           return (

@@ -10,9 +10,9 @@ import { T } from '@/lib/i18n/translations'
 import type { Profile, DailyMission, Mission, Milestone } from '@/types'
 
 const MILESTONE_META = [
-  { day: 10, xp: 500, labelKey: 'soboReward' as const, emoji: '🎀' },
-  { day: 20, xp: 900, labelKey: 'midReward' as const, emoji: '🏆' },
-  { day: 30, xp: 1500, labelKey: 'bigReward' as const, emoji: '🎁' },
+  { day: 10, xp: 900, labelKey: 'soboReward' as const, emoji: '🎀' },
+  { day: 20, xp: 1900, labelKey: 'midReward' as const, emoji: '🏆' },
+  { day: 30, xp: 3200, labelKey: 'bigReward' as const, emoji: '🎁' },
 ]
 
 interface Props {

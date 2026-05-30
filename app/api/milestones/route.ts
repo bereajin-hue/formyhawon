@@ -2,9 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 const THRESHOLDS = [
-  { day_number: 10, xp_required: 500 },
-  { day_number: 20, xp_required: 900 },
-  { day_number: 30, xp_required: 1500 },
+  { day_number: 10, xp_required: 900 },
+  { day_number: 20, xp_required: 1900 },
+  { day_number: 30, xp_required: 3200 },
 ]
 
 export async function GET() {
