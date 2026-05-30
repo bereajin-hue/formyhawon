@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const results = await Promise.all(
       words.map(async ({ word, definition, sentence }) => {
         const message = await anthropic.messages.create({
-          model: 'claude-sonnet-4-6',
+          model: 'claude-haiku-4-5-20251001',
           max_tokens: 300,
           system: VOCAB_CHECK_SYSTEM,
           messages: [{ role: 'user', content: vocabCheckPrompt(word, definition, sentence, 'EN') }],

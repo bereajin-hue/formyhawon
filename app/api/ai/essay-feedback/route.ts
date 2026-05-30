@@ -27,7 +27,13 @@ export async function POST(request: Request) {
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1800,
-      system: ESSAY_FEEDBACK_SYSTEM,
+      system: [
+        {
+          type: 'text',
+          text: ESSAY_FEEDBACK_SYSTEM,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
       messages: [{ role: 'user', content: essayFeedbackPrompt(essay, prompt, bookTitle, grade, bookContext) }],
     })
 
