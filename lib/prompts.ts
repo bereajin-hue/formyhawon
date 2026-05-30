@@ -111,7 +111,7 @@ Return ONLY this JSON:
     "coherence": { "score": 1, "label": "Needs work", "feedback": "...", "tip": "..." },
     "contextual_awareness": { "score": 1, "label": "Needs work", "feedback": "...", "tip": "..." }
   },
-  "model_sentence": "Find the weakest analytical sentence in their essay. Rewrite it to show what strong IGCSE literary analysis sounds like — specific, technique-aware, effect-focused. Make it sound like a capable student wrote it, not an AI. Keep it grounded in the actual text.",
+  "model_sentence": "Find the weakest analytical sentence in their essay and rewrite it — output the rewritten sentence only, no prefix like 'Weakest sentence:' or 'Rewrite:'. It should show what strong IGCSE literary analysis looks like: specific, technique-aware, effect-focused. Make it sound like a capable student wrote it, not an AI. Ground it in the actual text.",
   "overall_comment": "One or two honest sentences. What does this student most need to work on? Say it directly, without softening everything into a compliment sandwich.",
   "xp_bonus": 0
 }
