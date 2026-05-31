@@ -22,8 +22,23 @@ export async function GET() {
   return NextResponse.json({ session })
 }
 
+type VocabWordRaw = { word: string; definition: string; usage: string }
+type VocabWordOut = { word: string; definition: string; example: string }
+
+function pickRoundRobin(queues: VocabWordOut[][], total: number): VocabWordOut[] {
+  const result: VocabWordOut[] = []
+  let i = 0
+  while (result.length < total) {
+    const queue = queues[i % queues.length]
+    if (queue.length > 0) result.push(queue.shift()!)
+    i++
+    if (queues.every((q) => q.length === 0)) break
+  }
+  return result
+}
+
 export async function POST(request: Request) {
-  const { bookId } = await request.json()
+  const { bookId, mix } = await request.json()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -32,11 +47,60 @@ export async function POST(request: Request) {
     .from('profiles').select('id, grade').eq('user_id', user.id).single()
   if (!profile) return NextResponse.json({ error: 'No profile' }, { status: 404 })
 
+  const grade = profile.grade ?? 10
+  const today = new Date().toISOString().split('T')[0]
+
+  if (mix) {
+    const { data: essayRows } = await supabase
+      .from('essays')
+      .select('book_id')
+      .eq('user_id', profile.id)
+      .not('book_id', 'is', null)
+
+    const bookIds = [...new Set(essayRows?.map((e) => e.book_id).filter(Boolean) ?? [])]
+    if (bookIds.length === 0) {
+      return NextResponse.json({ error: '에세이를 쓴 책이 없어요.' }, { status: 404 })
+    }
+
+    const { data: bookRows } = await supabase
+      .from('books').select('title, author').in('id', bookIds).eq('status', 'reading')
+
+    const queues: VocabWordOut[][] = []
+    for (const book of bookRows ?? []) {
+      const { data: quest } = await supabase
+        .from('book_quests')
+        .select('content')
+        .eq('book_title', book.title)
+        .eq('book_author', book.author)
+        .eq('grade_level', grade)
+        .maybeSingle()
+
+      if (quest?.content?.vocab_spotlight?.length) {
+        const shuffled = [...quest.content.vocab_spotlight as VocabWordRaw[]]
+          .sort(() => Math.random() - 0.5)
+          .map((w) => ({ word: w.word, definition: w.definition, example: w.usage }))
+        queues.push(shuffled)
+      }
+    }
+
+    if (queues.length === 0) {
+      return NextResponse.json({ error: '단어 데이터가 없어요. 책 학습 자료를 먼저 생성해주세요.' }, { status: 404 })
+    }
+
+    const words = pickRoundRobin(queues, 5)
+    const { data: session, error } = await supabase
+      .from('vocab_sessions')
+      .insert({ user_id: profile.id, session_date: today, language: 'EN', words, completed: false })
+      .select().single()
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ session, words })
+  }
+
   const { data: book } = await supabase
     .from('books').select('title, author').eq('id', bookId).single()
   if (!book) return NextResponse.json({ error: 'Book not found' }, { status: 404 })
 
-  const grade = profile.grade ?? 10
   const { data: quest } = await supabase
     .from('book_quests')
     .select('content')
@@ -52,19 +116,13 @@ export async function POST(request: Request) {
     )
   }
 
-  const all = [...quest.content.vocab_spotlight].sort(() => Math.random() - 0.5)
-  const words = all.slice(0, 5).map((w: { word: string; definition: string; usage: string }) => ({
-    word: w.word,
-    definition: w.definition,
-    example: w.usage,
-  }))
+  const all = [...quest.content.vocab_spotlight as VocabWordRaw[]].sort(() => Math.random() - 0.5)
+  const words = all.slice(0, 5).map((w) => ({ word: w.word, definition: w.definition, example: w.usage }))
 
-  const today = new Date().toISOString().split('T')[0]
   const { data: session, error } = await supabase
     .from('vocab_sessions')
     .insert({ user_id: profile.id, session_date: today, language: 'EN', words, completed: false })
-    .select()
-    .single()
+    .select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ session, words })

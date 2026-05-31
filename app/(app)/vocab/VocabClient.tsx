@@ -7,6 +7,7 @@ import type { Book, VocabSession, VocabWord, VocabCorrection } from '@/types'
 
 interface Props {
   readingBooks: Book[]
+  booksWithEssays: Book[]
   todaySession: VocabSession | null
 }
 
@@ -18,7 +19,7 @@ const SCORE_CONFIG = [
   { label: '완벽', enLabel: 'Perfect', color: 'bg-purple-400' },
 ]
 
-export default function VocabClient({ readingBooks, todaySession }: Props) {
+export default function VocabClient({ readingBooks, booksWithEssays, todaySession }: Props) {
   const { t, lang } = useT()
   const [status, setStatus] = useState<'select' | 'writing' | 'checking' | 'done'>(
     todaySession?.completed ? 'done' : todaySession ? 'writing' : 'select'
@@ -37,6 +38,21 @@ export default function VocabClient({ readingBooks, todaySession }: Props) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bookId: selectedBook.id }),
+    })
+    const data = await res.json()
+    if (data.words) {
+      setWords(data.words)
+      setStatus('writing')
+    }
+    setLoading(false)
+  }
+
+  async function handleStartMixed() {
+    setLoading(true)
+    const res = await fetch('/api/vocab', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mix: true }),
     })
     const data = await res.json()
     if (data.words) {
@@ -215,6 +231,38 @@ export default function VocabClient({ readingBooks, todaySession }: Props) {
           <p className="font-medium text-gray-600">{t(T.vocab.noBooks)}</p>
           <p className="text-sm mt-1">{t(T.vocab.noBooksDesc)}</p>
         </div>
+      ) : booksWithEssays.length >= 2 ? (
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">🔀</span>
+            <p className="font-semibold text-gray-800">
+              {lang === 'ko' ? '혼합 어휘 세션' : 'Mixed Vocab Session'}
+            </p>
+          </div>
+          <p className="text-sm text-gray-500 mb-5">
+            {lang === 'ko'
+              ? '에세이를 쓴 책들에서 단어를 골고루 출제합니다'
+              : 'Words drawn evenly from books you have written essays for'}
+          </p>
+          <div className="space-y-2 mb-6">
+            {booksWithEssays.map((book) => (
+              <div key={book.id} className="flex items-center gap-3 px-4 py-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                <span className="text-indigo-400 text-sm">📖</span>
+                <div>
+                  <p className="font-medium text-gray-800 text-sm">{book.title}</p>
+                  <p className="text-xs text-gray-400">{book.author}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={handleStartMixed}
+            disabled={loading}
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold rounded-xl transition-all active:scale-95"
+          >
+            {loading ? t(T.vocab.preparing) : t(T.vocab.start)}
+          </button>
+        </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
           <p className="font-medium text-gray-700 mb-4">{t(T.vocab.selectPrompt)}</p>
@@ -234,7 +282,6 @@ export default function VocabClient({ readingBooks, todaySession }: Props) {
               </button>
             ))}
           </div>
-
           <button
             onClick={handleStartSession}
             disabled={!selectedBook || loading}

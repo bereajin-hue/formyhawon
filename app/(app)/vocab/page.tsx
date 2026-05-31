@@ -18,6 +18,15 @@ export default async function VocabPage() {
     .eq('status', 'reading')
     .order('created_at', { ascending: false })
 
+  const { data: essayRows } = await supabase
+    .from('essays')
+    .select('book_id')
+    .eq('user_id', profile.id)
+    .not('book_id', 'is', null)
+
+  const essayBookIds = new Set(essayRows?.map((e) => e.book_id).filter(Boolean) ?? [])
+  const booksWithEssays = (books ?? []).filter((b) => essayBookIds.has(b.id))
+
   const today = new Date().toISOString().split('T')[0]
   const { data: todaySession } = await supabase
     .from('vocab_sessions')
@@ -29,6 +38,7 @@ export default async function VocabPage() {
   return (
     <VocabClient
       readingBooks={books ?? []}
+      booksWithEssays={booksWithEssays}
       todaySession={todaySession ?? null}
     />
   )
