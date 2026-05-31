@@ -34,8 +34,8 @@ Return ONLY this JSON structure (no other text):
     }
   ],
   "chapter_questions": {
-    "Chapter 1": ["analytical question 1", "analytical question 2", "analytical question 3"],
-    "Chapter 2": ["...", "...", "..."]
+    "Chapter 1": ["analytical question 1", "analytical question 2"],
+    "Chapter 2": ["analytical question 1", "analytical question 2"]
   },
   "vocab_spotlight": [
     {
@@ -50,7 +50,7 @@ Requirements:
 - essay_prompts: exactly 6 questions (2 easy, 2 medium, 2 hard)
 - themes: exactly 4 themes
 - vocab_spotlight: exactly 10 words
-- chapter_questions: cover all major chapters/sections
+- chapter_questions: select the 8 most narratively important chapters only (2 questions each, max 16 questions total)
 - All content in English
 `
 
