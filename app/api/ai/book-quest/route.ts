@@ -25,10 +25,14 @@ export async function POST(request: Request) {
     const anthropic = getAnthropicClient()
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
+      max_tokens: 8000,
       system: BOOK_QUEST_SYSTEM,
       messages: [{ role: 'user', content: bookQuestPrompt(title, author, grade) }],
     })
+
+    if (message.stop_reason === 'max_tokens') {
+      throw new Error('Book quest response truncated — content too large')
+    }
 
     const rawText = message.content[0].type === 'text' ? message.content[0].text : '{}'
     const content = parseClaudeJSON(rawText)
