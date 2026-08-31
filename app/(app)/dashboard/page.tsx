@@ -20,13 +20,15 @@ export default async function DashboardPage() {
 
   const today = new Date().toISOString().split('T')[0]
 
-  const { data: dailyMission } = await supabase
-    .from('daily_missions').select('*')
-    .eq('user_id', profile.id).eq('mission_date', today).single()
-
-  const { data: allMissions } = await supabase
-    .from('daily_missions').select('mission_date, all_done')
-    .eq('user_id', profile.id).order('mission_date', { ascending: true })
+  const [
+    { data: dailyMission },
+    { data: allMissions },
+    { data: existingMilestones },
+  ] = await Promise.all([
+    supabase.from('daily_missions').select('*').eq('user_id', profile.id).eq('mission_date', today).single(),
+    supabase.from('daily_missions').select('mission_date, all_done').eq('user_id', profile.id).order('mission_date', { ascending: true }),
+    supabase.from('milestones').select('day_number').eq('user_id', profile.id),
+  ])
 
   const startDate = allMissions?.[0]?.mission_date ?? today
   const start = new Date(startDate)
@@ -39,9 +41,6 @@ export default async function DashboardPage() {
       const d = new Date(m.mission_date)
       return Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
     })
-
-  const { data: existingMilestones } = await supabase
-    .from('milestones').select('day_number').eq('user_id', profile.id)
 
   const existingDays = new Set(existingMilestones?.map((m) => m.day_number) ?? [])
   const toInsert = THRESHOLDS.filter(

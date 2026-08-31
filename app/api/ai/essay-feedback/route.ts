@@ -5,10 +5,13 @@ import type { EssayFeedback } from '@/types'
 
 async function fetchWikipediaContext(bookTitle: string): Promise<string> {
   try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 1500)
     const res = await fetch(
       `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bookTitle)}`,
-      { headers: { 'User-Agent': 'ScholarQuest/1.0 (educational app)' } }
+      { headers: { 'User-Agent': 'ScholarQuest/1.0 (educational app)' }, signal: controller.signal }
     )
+    clearTimeout(timer)
     if (!res.ok) return ''
     const data = await res.json()
     return data.extract ?? ''
